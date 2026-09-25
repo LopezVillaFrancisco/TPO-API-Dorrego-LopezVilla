@@ -1,0 +1,22 @@
+{
+  "name": "tpo-api-backend",
+  "version": "1.0.0",
+  "description": "Backend - Plataforma web para pequeños comercios (gastronomía / menú digital)",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "seed": "node seed/seed.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.8"
+  }
+}
