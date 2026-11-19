@@ -57,6 +57,16 @@ const validateFields = (fields) => {
   }
 };
 
+const validateDiscount = ({ badgeType, price, discountPrice }) => {
+  if (badgeType !== 'descuento') return;
+  if (discountPrice === undefined || discountPrice === null || discountPrice === '') {
+    throw httpError(400, 'Un producto con badge descuento necesita discountPrice');
+  }
+  if (Number(discountPrice) >= Number(price)) {
+    throw httpError(400, 'discountPrice debe ser menor que price');
+  }
+};
+
 const ensureCategoryExists = async (categoryId) => {
   const category = await Category.findByPk(categoryId);
   if (!category) {
@@ -103,6 +113,7 @@ const createProduct = async (data) => {
   UPDATABLE_FIELDS.forEach((field) => {
     if (fields[field] !== undefined) productData[field] = fields[field];
   });
+  validateDiscount(productData);
 
   const productId = await sequelize.transaction(async (transaction) => {
     const product = await Product.create(productData, { transaction });
@@ -130,6 +141,7 @@ const updateProduct = async (id, data) => {
   UPDATABLE_FIELDS.forEach((field) => {
     if (fields[field] !== undefined) product[field] = fields[field];
   });
+  validateDiscount(product);
 
   await sequelize.transaction(async (transaction) => {
     await product.save({ transaction });

@@ -1,0 +1,65 @@
+import { useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import AuthLayout from '../../components/AuthLayout';
+import FormField, { Alert } from '../../components/FormField';
+import { useAuth } from '../../context/AuthContext';
+import { EMAIL_REGEX } from '../../utils/format';
+
+export default function Login() {
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [sending, setSending] = useState(false);
+
+  if (isAuthenticated) return <Navigate to="/admin" replace />;
+
+  const update = (field) => (event) => setForm({ ...form, [field]: event.target.value });
+
+  const submit = async (event) => {
+    event.preventDefault();
+    const nextErrors = {};
+    if (!EMAIL_REGEX.test(form.email)) nextErrors.email = 'Ingresá un email válido';
+    if (!form.password) nextErrors.password = 'Ingresá tu contraseña';
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+
+    setSending(true);
+    setApiError('');
+    try {
+      await login({ email: form.email.trim(), password: form.password });
+      navigate(location.state?.from || '/admin', { replace: true });
+    } catch (error) {
+      setApiError(error.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      title="Ingresar"
+      subtitle="Accedé al panel para gestionar tu menú."
+      footer={<Link to="/" className="hover:text-accent">← Volver al menú</Link>}
+    >
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        <Alert>{apiError}</Alert>
+        <FormField label="Email" error={errors.email}>
+          <input className={`field ${errors.email ? 'field-error' : ''}`} type="email" autoComplete="email" value={form.email} onChange={update('email')} />
+        </FormField>
+        <FormField label="Contraseña" error={errors.password}>
+          <input className={`field ${errors.password ? 'field-error' : ''}`} type="password" autoComplete="current-password" value={form.password} onChange={update('password')} />
+        </FormField>
+        <button className="btn-primary w-full" disabled={sending}>
+          {sending ? 'Ingresando…' : 'Ingresar'}
+        </button>
+        <div className="flex justify-between text-sm text-stone-400">
+          <Link to="/recuperar" className="hover:text-accent">¿Olvidaste tu contraseña?</Link>
+          <Link to="/registro" className="hover:text-accent">Crear cuenta</Link>
+        </div>
+      </form>
+    </AuthLayout>
+  );
+}

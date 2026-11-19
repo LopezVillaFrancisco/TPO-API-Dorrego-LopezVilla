@@ -11,6 +11,7 @@ const BusinessInfo = sequelize.define(
     phone: { type: DataTypes.STRING(30), allowNull: true },
     socialLinks: { type: DataTypes.JSON, allowNull: true, defaultValue: {} },
     hours: { type: DataTypes.STRING, allowNull: true },
+    logoUrl: { type: DataTypes.STRING(500), allowNull: true },
   },
   {
     tableName: 'business_info',

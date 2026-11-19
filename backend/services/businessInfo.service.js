@@ -1,6 +1,6 @@
 const BusinessInfo = require('../models/BusinessInfo.model');
 
-const UPDATABLE_FIELDS = ['name', 'description', 'address', 'phone', 'socialLinks', 'hours'];
+const UPDATABLE_FIELDS = ['name', 'description', 'address', 'phone', 'socialLinks', 'hours', 'logoUrl'];
 
 const getBusinessInfo = async () => {
   const info = await BusinessInfo.findOne({ order: [['id', 'ASC']] });
