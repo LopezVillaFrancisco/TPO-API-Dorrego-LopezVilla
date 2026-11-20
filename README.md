@@ -1,0 +1,133 @@
+# Menú digital
+
+Plataforma web para que un comercio gastronómico publique su carta y reciba consultas de sus clientes. El cliente recorre los platos deslizando, como en un feed de videos. El comercio administra productos, categorías, mensajes y sus datos desde un panel.
+
+- `backend/`: API REST en Node.js con Express, Sequelize y PostgreSQL.
+- `frontend/`: aplicación en React con Vite y Tailwind CSS.
+
+## Requisitos
+
+- Node.js 20 o superior
+- Una base de datos PostgreSQL. Usamos Supabase.
+
+## Cómo levantarlo
+
+### Backend
+
+```bash
+cd backend
+npm install
+```
+
+Copiar `.env.example` a `.env` y completar los datos de la base y un `JWT_SECRET` propio. Después:
+
+```bash
+npm run dev
+```
+
+La API queda en `http://localhost:4000/api`. Al arrancar se conecta a la base y crea las tablas que falten.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Copiar `.env.example` a `.env`. Si el backend corre en otro puerto o dominio, cambiar `VITE_API_URL`. Después:
+
+```bash
+npm run dev
+```
+
+La aplicación queda en `http://localhost:5173`. Para generar la versión de producción: `npm run build`.
+
+### Primer uso
+
+1. Entrar a `http://localhost:5173/registro` y crear el usuario administrador.
+2. Cargar categorías y productos desde el panel (`/admin`), o usar los datos de ejemplo.
+
+## Datos de ejemplo
+
+`backend/datos-ejemplo.sql` carga los datos del comercio, 6 categorías, 19 productos con fotos y 2 mensajes. Incluye un descuento vigente, uno vencido y un producto agotado.
+
+Se corre en el editor SQL de la base (en Supabase, SQL Editor), después de haber levantado el backend una vez para que existan las tablas. Se puede correr más de una vez sin duplicar datos.
+
+## Variables de entorno
+
+Los valores de ejemplo están en el `.env.example` de cada carpeta.
+
+| Variable | Proyecto | Para qué |
+| --- | --- | --- |
+| `PORT` | backend | Puerto de la API. |
+| `NODE_ENV` | backend | `development` o `production`. En desarrollo, la recuperación de contraseña devuelve el token en la respuesta porque no se envían mails. |
+| `CORS_ORIGIN` | backend | URL del frontend que puede llamar a la API. |
+| `JWT_SECRET` | backend | Clave para firmar los tokens de sesión. |
+| `JWT_EXPIRES_IN` | backend | Duración de la sesión, por ejemplo `24h`. |
+| `RESET_TOKEN_EXPIRES_MINUTES` | backend | Minutos de validez del link para recuperar la contraseña. |
+| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | backend | Conexión a PostgreSQL. En Supabase usar los datos del *Session pooler* (Connect → Session pooler), porque la conexión directa solo funciona con IPv6. |
+| `DB_DIALECT` | backend | `postgres`. |
+| `DB_SSL` | backend | `true` para Supabase. |
+| `VITE_API_URL` | frontend | URL base de la API, terminada en `/api`. |
+
+## Estructura
+
+```
+backend/
+  app.js          arranque del servidor, middlewares y conexión a la base
+  config.js       lectura de las variables de entorno
+  routes/         URLs de la API y qué controller atiende cada una
+  controllers/    leen el request y arman la respuesta
+  services/       reglas de negocio y validaciones
+  models/         tablas y relaciones (Sequelize)
+  auth/           middleware que valida el token
+  databases/      conexión a PostgreSQL
+
+frontend/src/
+  api/            cliente HTTP y una función por endpoint
+  components/     piezas reutilizables (modal, formularios, chips)
+  components/feed/  el menú deslizable: gestos, slides, header y paneles
+  context/        sesión del usuario
+  hooks/          lógica reutilizable (tamaño de pantalla, teclas, demoras)
+  pages/          pantallas públicas, de ingreso y del panel
+  utils/          formato de precios y armado de URLs de fotos
+  index.css       colores, tipografías y estilos base
+```
+
+Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las rutas protegidas esperan el token en el header `x-access-token`.
+
+## Endpoints
+
+| Método | Ruta | Token |
+| --- | --- | --- |
+| POST | `/api/auth/registration` | No |
+| POST | `/api/auth/login` | No |
+| POST | `/api/auth/logout` | No |
+| POST | `/api/auth/recover-password` | No |
+| POST | `/api/auth/reset-password` | No |
+| GET, PATCH | `/api/auth/profile` | Sí |
+| GET | `/api/products` (filtros `search` y `category_id`) | No |
+| GET | `/api/products/:id` | No |
+| POST | `/api/products` | Sí |
+| PATCH, DELETE | `/api/products/:id` | Sí |
+| GET | `/api/categories` | No |
+| POST | `/api/categories` | Sí |
+| PATCH, DELETE | `/api/categories/:id` | Sí |
+| GET | `/api/business-info` | No |
+| PATCH | `/api/business-info` | Sí |
+| POST | `/api/contact-messages` | No |
+| GET | `/api/contact-messages` | Sí |
+| PATCH, DELETE | `/api/contact-messages/:id` | Sí |
+
+## Pantallas
+
+| Ruta | Pantalla |
+| --- | --- |
+| `/` | Menú para clientes |
+| `/login`, `/registro` | Ingreso y registro del administrador |
+| `/recuperar`, `/reset` | Recuperación de contraseña |
+| `/admin/productos` | Productos |
+| `/admin/categorias` | Categorías |
+| `/admin/mensajes` | Consultas recibidas |
+| `/admin/comercio` | Datos del comercio |
+| `/admin/perfil` | Perfil del administrador |
