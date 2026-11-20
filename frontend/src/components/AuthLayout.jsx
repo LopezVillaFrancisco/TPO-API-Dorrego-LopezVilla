@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom';
 import { ChefHat } from 'lucide-react';
-
-const COVER = 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=1600&q=80';
+import { AUTH_COVER_URL } from '../config';
 
 export default function AuthLayout({ title, subtitle, children, footer }) {
   return (
     <div className="min-h-full lg:grid lg:grid-cols-[1.1fr_1fr]">
       <aside className="relative hidden overflow-hidden lg:block">
-        <img src={COVER} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={AUTH_COVER_URL} alt="" className="absolute inset-0 h-full w-full object-cover" />
       </aside>
 
       <div className="flex min-h-full items-center justify-center px-4 py-10 lg:px-12">

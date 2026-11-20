@@ -4,6 +4,7 @@ const authorization = require('../../auth/authorization');
 
 const router = express.Router();
 
+router.get('/registration', AuthController.getRegistrationStatus);
 router.post('/registration', AuthController.register);
 router.post('/login', AuthController.login);
 router.post('/logout', AuthController.logout);

@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout';
 import FormField, { Alert } from '../../components/FormField';
+import Spinner from '../../components/Spinner';
 import { useAuth } from '../../context/AuthContext';
+import useRegistrationOpen from '../../hooks/useRegistrationOpen';
 import { EMAIL_REGEX, USERNAME_HINT, USERNAME_REGEX } from '../../utils/format';
 
 const FIELDS = [
@@ -22,8 +24,28 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [sending, setSending] = useState(false);
+  const registrationOpen = useRegistrationOpen();
 
   if (isAuthenticated) return <Navigate to="/admin" replace />;
+
+  if (registrationOpen === null) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!registrationOpen) {
+    return (
+      <AuthLayout
+        title="Registro cerrado"
+        subtitle="El comercio ya tiene administradores. Si necesitás acceso, pedíselo a uno de ellos."
+      >
+        <Link to="/login" className="btn-primary w-full">Ir a ingresar</Link>
+      </AuthLayout>
+    );
+  }
 
   const validate = () => {
     const next = {};

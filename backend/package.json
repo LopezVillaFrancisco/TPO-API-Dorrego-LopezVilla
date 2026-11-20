@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch app.js"
+    "dev": "node --watch-path=app.js --watch-path=config.js --watch-path=auth --watch-path=controllers --watch-path=databases --watch-path=models --watch-path=routes --watch-path=services app.js"
   },
   "license": "ISC",
   "dependencies": {

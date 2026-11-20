@@ -4,6 +4,7 @@ const data = (promise) => promise.then((payload) => payload.data);
 
 export const authApi = {
   login: (body) => data(request('/auth/login', { method: 'POST', body })),
+  registrationStatus: () => data(request('/auth/registration')),
   register: (body) => data(request('/auth/registration', { method: 'POST', body })),
   logout: () => request('/auth/logout', { method: 'POST' }),
   recoverPassword: (body) => request('/auth/recover-password', { method: 'POST', body }),

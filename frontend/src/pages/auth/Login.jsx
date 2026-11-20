@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout';
 import FormField, { Alert } from '../../components/FormField';
 import { useAuth } from '../../context/AuthContext';
+import useRegistrationOpen from '../../hooks/useRegistrationOpen';
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
@@ -12,6 +13,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [sending, setSending] = useState(false);
+  const registrationOpen = useRegistrationOpen();
 
   if (isAuthenticated) return <Navigate to="/admin" replace />;
 
@@ -56,7 +58,7 @@ export default function Login() {
         </button>
         <div className="flex justify-between text-sm text-stone-400">
           <Link to="/recuperar" className="hover:text-accent">¿Olvidaste tu contraseña?</Link>
-          <Link to="/registro" className="hover:text-accent">Crear cuenta</Link>
+          {registrationOpen && <Link to="/registro" className="hover:text-accent">Crear cuenta</Link>}
         </div>
       </form>
     </AuthLayout>

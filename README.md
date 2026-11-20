@@ -44,8 +44,9 @@ La aplicación queda en `http://localhost:5173`. Para generar la versión de pro
 
 ### Primer uso
 
-1. Entrar a `http://localhost:5173/registro` y crear el usuario administrador.
-2. Cargar categorías y productos desde el panel (`/admin`), o usar los datos de ejemplo.
+1. Entrar a `http://localhost:5173/registro` y crear el usuario administrador. El registro solo está abierto mientras no exista ningún administrador; después se cierra.
+2. Ingresar con el email o el usuario y la contraseña.
+3. Cargar categorías y productos desde el panel (`/admin`), o usar los datos de ejemplo.
 
 ## Datos de ejemplo
 
@@ -69,6 +70,7 @@ Los valores de ejemplo están en el `.env.example` de cada carpeta.
 | `DB_DIALECT` | backend | `postgres`. |
 | `DB_SSL` | backend | `true` para Supabase. |
 | `VITE_API_URL` | frontend | URL base de la API, terminada en `/api`. |
+| `VITE_AUTH_COVER_URL` | frontend | Foto que se muestra en las pantallas de ingreso y registro. |
 
 ## Estructura
 
@@ -91,6 +93,7 @@ frontend/src/
   hooks/          lógica reutilizable (tamaño de pantalla, teclas, demoras)
   pages/          pantallas públicas, de ingreso y del panel
   utils/          formato de precios y armado de URLs de fotos
+  config.js       valores configurables leídos de las variables de entorno
   index.css       colores, tipografías y estilos base
 ```
 
@@ -100,7 +103,8 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 
 | Método | Ruta | Token |
 | --- | --- | --- |
-| POST | `/api/auth/registration` | No |
+| GET | `/api/auth/registration` (indica si el registro está abierto) | No |
+| POST | `/api/auth/registration` (solo si no hay administradores) | No |
 | POST | `/api/auth/login` | No |
 | POST | `/api/auth/logout` | No |
 | POST | `/api/auth/recover-password` | No |

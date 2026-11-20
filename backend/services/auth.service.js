@@ -38,6 +38,8 @@ const normalizeUsername = (username) => {
   return value;
 };
 
+const isRegistrationOpen = async () => (await AdminUser.count()) === 0;
+
 const ensureUsernameFree = async (username, ownId) => {
   if (!username) return;
   const existing = await AdminUser.findOne({ where: { username } });
@@ -55,6 +57,9 @@ const toPublicUser = (user) => {
 };
 
 const register = async ({ firstName, lastName, email, username, phone, password }) => {
+  if (!(await isRegistrationOpen())) {
+    throw httpError(403, 'El registro está cerrado: el comercio ya tiene administradores');
+  }
   if (!firstName || !lastName || !email || !password) {
     throw httpError(400, 'firstName, lastName, email y password son obligatorios');
   }
@@ -167,4 +172,4 @@ const updateProfile = async (id, { firstName, lastName, email, username, phone, 
   return toPublicUser(user);
 };
 
-module.exports = { register, login, recoverPassword, resetPassword, getProfile, updateProfile };
+module.exports = { isRegistrationOpen, register, login, recoverPassword, resetPassword, getProfile, updateProfile };

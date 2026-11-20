@@ -1,6 +1,15 @@
 const config = require('../config');
 const AuthService = require('../services/auth.service');
 
+const getRegistrationStatus = async (req, res) => {
+  try {
+    const open = await AuthService.isRegistrationOpen();
+    return res.status(200).json({ status: 200, data: { open }, message: open ? 'Registro abierto' : 'Registro cerrado' });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
+  }
+};
+
 const register = async (req, res) => {
   try {
     const result = await AuthService.register(req.body);
@@ -68,4 +77,4 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout, recoverPassword, resetPassword, getProfile, updateProfile };
+module.exports = { getRegistrationStatus, register, login, logout, recoverPassword, resetPassword, getProfile, updateProfile };
