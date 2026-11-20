@@ -42,6 +42,16 @@ npm run dev
 
 La aplicación queda en `http://localhost:5173`. Para generar la versión de producción: `npm run build`.
 
+### Los dos juntos
+
+Con las dependencias instaladas en las dos carpetas, desde `frontend` se pueden levantar el backend y el frontend con un solo comando:
+
+```bash
+npm run dev:todo
+```
+
+Los mensajes de cada uno aparecen en la misma terminal con las etiquetas `back` y `front`. Con Ctrl+C se cierran los dos.
+
 ### Primer uso
 
 1. Entrar a `http://localhost:5173/registro` y crear el usuario administrador. El registro solo está abierto mientras no exista ningún administrador; después se cierra.
