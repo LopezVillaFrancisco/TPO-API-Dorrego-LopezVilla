@@ -63,16 +63,16 @@ function CategoryRow({ category, position, total, products, busy, editing, onEdi
 
   return (
     <li className="flex items-center gap-3 px-4 py-3 sm:gap-4">
-      <div className="flex shrink-0 items-center gap-2">
-        <div className="flex flex-col">
-          <button type="button" className="cursor-pointer text-stone-500 hover:text-stone-100 disabled:cursor-default disabled:opacity-25" disabled={busy || position === 0} onClick={() => onMove(position, -1)} aria-label={`Subir ${category.name}`}>
-            <ArrowUp size={16} />
+      <div className="flex shrink-0 items-center gap-3">
+        <div className="flex flex-col gap-1">
+          <button type="button" className="icon-btn size-8 disabled:cursor-default disabled:opacity-25" disabled={busy || position === 0} onClick={() => onMove(position, -1)} aria-label={`Subir ${category.name}`}>
+            <ArrowUp size={17} />
           </button>
-          <button type="button" className="cursor-pointer text-stone-500 hover:text-stone-100 disabled:cursor-default disabled:opacity-25" disabled={busy || position === total - 1} onClick={() => onMove(position, 1)} aria-label={`Bajar ${category.name}`}>
-            <ArrowDown size={16} />
+          <button type="button" className="icon-btn size-8 disabled:cursor-default disabled:opacity-25" disabled={busy || position === total - 1} onClick={() => onMove(position, 1)} aria-label={`Bajar ${category.name}`}>
+            <ArrowDown size={17} />
           </button>
         </div>
-        <span className="w-5 font-mono text-xs text-stone-500">{String(position + 1).padStart(2, '0')}</span>
+        <span className="hidden w-5 font-mono text-xs text-stone-500 sm:block">{String(position + 1).padStart(2, '0')}</span>
       </div>
 
       <PhotoStack photos={photos} />
