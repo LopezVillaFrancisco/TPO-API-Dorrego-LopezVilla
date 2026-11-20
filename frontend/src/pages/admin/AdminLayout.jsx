@@ -54,14 +54,14 @@ export default function AdminLayout() {
     <div className="min-h-full lg:flex">
       <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-r border-stone-800 bg-panel/40 px-5 py-6 lg:flex">
         {brand}
-        <nav className="mt-10 flex flex-col gap-1">
+        <nav className="mt-10 flex flex-col">
           {LINKS.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-medium transition ${
-                  isActive ? 'bg-accent text-stone-900' : 'text-stone-400 hover:bg-stone-800 hover:text-stone-100'
+                `flex items-center gap-3 border-l-2 py-2.5 pr-3 pl-4 text-[15px] transition ${
+                  isActive ? 'border-accent text-stone-50' : 'border-stone-800 text-stone-400 hover:border-stone-600 hover:text-stone-100'
                 }`
               }
             >
@@ -71,14 +71,17 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto space-y-3 border-t border-stone-800 pt-5">
-          <p className="truncate px-1 text-sm text-stone-400">Hola, <span className="text-stone-200">{user?.firstName}</span></p>
-          <Link to="/" className="btn-ghost w-full">
-            <Eye size={16} /> Ver menú
-          </Link>
-          <button type="button" onClick={handleLogout} className="btn-ghost w-full border-transparent text-stone-400">
-            <LogOut size={16} /> Cerrar sesión
-          </button>
+        <div className="mt-auto border-t border-stone-800 pt-5 text-sm">
+          <p className="truncate text-stone-200">{user?.firstName} {user?.lastName}</p>
+          {user?.username && <p className="truncate text-stone-500">@{user.username}</p>}
+          <div className="mt-4 flex flex-col items-start gap-2.5">
+            <Link to="/" className="flex items-center gap-2 text-stone-300 hover:text-accent">
+              <Eye size={15} /> Ver el menú
+            </Link>
+            <button type="button" onClick={handleLogout} className="flex cursor-pointer items-center gap-2 text-stone-500 hover:text-stone-200">
+              <LogOut size={15} /> Cerrar sesión
+            </button>
+          </div>
         </div>
       </aside>
 
