@@ -266,19 +266,31 @@ export default function FeedStage({
     }
   };
 
-  const onWheel = (event) => {
+  const wheelRef = useRef(null);
+  wheelRef.current = (event) => {
     if (disabled) return;
     const now = Date.now();
     if (now - lastWheel.current < WHEEL_COOLDOWN) return;
     const { deltaX, deltaY } = event;
     if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 20) {
       lastWheel.current = now;
-      go('y', Math.sign(deltaY));
+      goRef.current('y', Math.sign(deltaY));
     } else if (Math.abs(deltaX) > 20) {
       lastWheel.current = now;
-      go('x', Math.sign(deltaX));
+      goRef.current('x', Math.sign(deltaX));
     }
   };
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return undefined;
+    const onWheel = (event) => {
+      event.preventDefault();
+      wheelRef.current(event);
+    };
+    element.addEventListener('wheel', onWheel, { passive: false });
+    return () => element.removeEventListener('wheel', onWheel);
+  }, []);
 
   const slots = columns.map((column, index) => ({ key: column.id, slot: index, column, ghost: false }));
   if (loopX) {
@@ -293,7 +305,6 @@ export default function FeedStage({
       onPanStart={onPanStart}
       onPan={onPan}
       onPanEnd={onPanEnd}
-      onWheel={onWheel}
       onClickCapture={(event) => {
         if (recentlyPanned()) {
           event.preventDefault();
