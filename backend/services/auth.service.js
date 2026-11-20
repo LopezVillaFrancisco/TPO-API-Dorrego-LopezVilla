@@ -56,12 +56,12 @@ const toPublicUser = (user) => {
   return publicUser;
 };
 
-const register = async ({ firstName, lastName, email, username, phone, password }) => {
-  if (!(await isRegistrationOpen())) {
-    throw httpError(403, 'El registro está cerrado: el comercio ya tiene administradores');
-  }
+const createAdmin = async ({ firstName, lastName, email, username, phone, password }) => {
   if (!firstName || !lastName || !email || !password) {
     throw httpError(400, 'firstName, lastName, email y password son obligatorios');
+  }
+  if (String(password).length < 6) {
+    throw httpError(400, 'La contraseña debe tener al menos 6 caracteres');
   }
   validateEmail(email);
   const cleanUsername = normalizeUsername(username);
@@ -83,7 +83,33 @@ const register = async ({ firstName, lastName, email, username, phone, password 
     })
   );
 
+  return user;
+};
+
+const register = async (data) => {
+  if (!(await isRegistrationOpen())) {
+    throw httpError(403, 'El registro está cerrado: el comercio ya tiene administradores');
+  }
+  const user = await createAdmin(data);
   return { token: generateToken(user), user: toPublicUser(user) };
+};
+
+const listAdmins = async () => {
+  const users = await AdminUser.findAll({ order: [['date', 'ASC'], ['id', 'ASC']] });
+  return users.map(toPublicUser);
+};
+
+const addAdmin = async (data) => toPublicUser(await createAdmin(data));
+
+const deleteAdmin = async (id, requesterId) => {
+  if (Number(id) === Number(requesterId)) {
+    throw httpError(400, 'No podés eliminar tu propio usuario');
+  }
+  const user = await AdminUser.findByPk(id);
+  if (!user) {
+    throw httpError(404, 'Usuario no encontrado');
+  }
+  await user.destroy();
 };
 
 const login = async ({ identifier, email, password }) => {
@@ -166,10 +192,15 @@ const updateProfile = async (id, { firstName, lastName, email, username, phone, 
   if (firstName !== undefined) user.firstName = firstName;
   if (lastName !== undefined) user.lastName = lastName;
   if (phone !== undefined) user.phone = phone;
-  if (password) user.password = bcrypt.hashSync(password, 8);
+  if (password) {
+    if (String(password).length < 6) {
+      throw httpError(400, 'La contraseña debe tener al menos 6 caracteres');
+    }
+    user.password = bcrypt.hashSync(password, 8);
+  }
 
   await saveUnique(() => user.save());
   return toPublicUser(user);
 };
 
-module.exports = { isRegistrationOpen, register, login, recoverPassword, resetPassword, getProfile, updateProfile };
+module.exports = { isRegistrationOpen, register, listAdmins, addAdmin, deleteAdmin, login, recoverPassword, resetPassword, getProfile, updateProfile };

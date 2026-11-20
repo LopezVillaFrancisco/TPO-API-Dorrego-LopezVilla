@@ -228,6 +228,7 @@ export default function Feed() {
           onOpenInfo={() => setSheet('info')}
           onOpenMenu={() => setSheet('menu')}
           onOpenSearch={() => setSheet('search')}
+          onNewProduct={openNewProduct}
           isAuthenticated={isAuthenticated}
           adminView={adminView}
           onToggleAdmin={() => setAdminView(!adminView)}

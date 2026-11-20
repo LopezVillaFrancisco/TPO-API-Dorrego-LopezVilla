@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, Lock, Menu, Search } from 'lucide-react';
+import { LayoutGrid, Lock, Menu, Plus, Search } from 'lucide-react';
 import BusinessLogo from '../BusinessLogo';
 
 function AccountControls({ isAuthenticated, adminView, onToggleAdmin }) {
@@ -38,6 +38,7 @@ export default function FeedHeader({
   onOpenInfo,
   onOpenMenu,
   onOpenSearch,
+  onNewProduct,
   isAuthenticated,
   adminView,
   onToggleAdmin,
@@ -80,13 +81,15 @@ export default function FeedHeader({
             </button>
           ))}
         </nav>
-        <div className="flex w-64 shrink-0 items-center justify-end gap-2 xl:w-72">
+        <div className="flex min-w-64 shrink-0 items-center justify-end gap-2 xl:min-w-72">
           <button type="button" onClick={onOpenSearch} className="icon-btn size-9" aria-label="Buscar productos">
             <Search size={16} />
           </button>
-          <button type="button" onClick={onOpenMenu} className="icon-btn size-9" aria-label="Ver categorías">
-            <Menu size={16} />
-          </button>
+          {adminView && (
+            <button type="button" onClick={onNewProduct} className="btn-primary whitespace-nowrap px-2.5 py-2 xl:px-4" aria-label="Nuevo producto" title="Nuevo producto">
+              <Plus size={16} /> <span className="hidden xl:inline">Nuevo producto</span>
+            </button>
+          )}
           <AccountControls isAuthenticated={isAuthenticated} adminView={adminView} onToggleAdmin={onToggleAdmin} />
         </div>
       </div>

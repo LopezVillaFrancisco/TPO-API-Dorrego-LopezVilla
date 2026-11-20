@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Eye, FolderTree, Inbox, LogOut, Store, UserRound, UtensilsCrossed } from 'lucide-react';
+import { Eye, FolderTree, Inbox, LogOut, Store, UserRound, Users, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { businessApi, messagesApi } from '../../api';
 import BusinessLogo from '../../components/BusinessLogo';
@@ -10,6 +10,7 @@ const LINKS = [
   { to: 'categorias', label: 'Categorías', icon: FolderTree },
   { to: 'mensajes', label: 'Mensajes', icon: Inbox },
   { to: 'comercio', label: 'Comercio', icon: Store },
+  { to: 'equipo', label: 'Equipo', icon: Users },
   { to: 'perfil', label: 'Perfil', icon: UserRound },
 ];
 

@@ -40,3 +40,10 @@ export const messagesApi = {
   updateStatus: (id, status) => data(request(`/contact-messages/${id}`, { method: 'PATCH', body: { status } })),
   remove: (id) => request(`/contact-messages/${id}`, { method: 'DELETE' }),
 };
+
+export const staffApi = {
+  list: () => data(request('/admin-users')),
+  create: (body) => data(request('/admin-users', { method: 'POST', body })),
+  update: (id, body) => data(request(`/admin-users/${id}`, { method: 'PATCH', body })),
+  remove: (id) => request(`/admin-users/${id}`, { method: 'DELETE' }),
+};

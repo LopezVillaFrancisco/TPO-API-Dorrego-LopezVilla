@@ -54,7 +54,7 @@ Los mensajes de cada uno aparecen en la misma terminal con las etiquetas `back` 
 
 ### Primer uso
 
-1. Entrar a `http://localhost:5173/registro` y crear el usuario administrador. El registro solo está abierto mientras no exista ningún administrador; después se cierra.
+1. Entrar a `http://localhost:5173/registro` y crear el primer administrador. El registro solo está abierto mientras no exista ningún administrador; después se cierra y los demás usuarios se agregan desde el panel, en Equipo.
 2. Ingresar con el email o el usuario y la contraseña.
 3. Cargar categorías y productos desde el panel (`/admin`), o usar los datos de ejemplo.
 
@@ -132,6 +132,8 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 | POST | `/api/contact-messages` | No |
 | GET | `/api/contact-messages` | Sí |
 | PATCH, DELETE | `/api/contact-messages/:id` | Sí |
+| GET, POST | `/api/admin-users` (usuarios del panel) | Sí |
+| PATCH, DELETE | `/api/admin-users/:id` (no permite eliminarse a uno mismo) | Sí |
 
 ## Pantallas
 
@@ -144,4 +146,5 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 | `/admin/categorias` | Categorías |
 | `/admin/mensajes` | Consultas recibidas |
 | `/admin/comercio` | Datos del comercio |
+| `/admin/equipo` | Usuarios que pueden ingresar al panel |
 | `/admin/perfil` | Perfil del administrador |

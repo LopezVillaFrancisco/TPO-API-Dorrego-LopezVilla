@@ -45,6 +45,8 @@ export const badgeLabel = (badge, percent) => {
 export const formatDate = (value) =>
   new Date(value).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
 
+export const formatDay = (value) => new Date(value).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+
 export const toDateInput = (value) => {
   if (!value) return '';
   const date = new Date(value);

@@ -11,6 +11,7 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminMessages from './pages/admin/AdminMessages';
 import AdminBusiness from './pages/admin/AdminBusiness';
 import AdminProfile from './pages/admin/AdminProfile';
+import AdminStaff from './pages/admin/AdminStaff';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="categorias" element={<AdminCategories />} />
         <Route path="mensajes" element={<AdminMessages />} />
         <Route path="comercio" element={<AdminBusiness />} />
+        <Route path="equipo" element={<AdminStaff />} />
         <Route path="perfil" element={<AdminProfile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
