@@ -8,6 +8,7 @@ const AdminUser = sequelize.define(
     firstName: { type: DataTypes.STRING(100), allowNull: false },
     lastName: { type: DataTypes.STRING(100), allowNull: false },
     email: { type: DataTypes.STRING(150), allowNull: false, unique: true, validate: { isEmail: true } },
+    username: { type: DataTypes.STRING(30), allowNull: true, unique: true },
     phone: { type: DataTypes.STRING(30), allowNull: true },
     password: { type: DataTypes.STRING, allowNull: false },
     resetPasswordToken: { type: DataTypes.STRING, allowNull: true },

@@ -3,13 +3,12 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout';
 import FormField, { Alert } from '../../components/FormField';
 import { useAuth } from '../../context/AuthContext';
-import { EMAIL_REGEX } from '../../utils/format';
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ identifier: '', password: '' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [sending, setSending] = useState(false);
@@ -21,7 +20,7 @@ export default function Login() {
   const submit = async (event) => {
     event.preventDefault();
     const nextErrors = {};
-    if (!EMAIL_REGEX.test(form.email)) nextErrors.email = 'Ingresá un email válido';
+    if (!form.identifier.trim()) nextErrors.identifier = 'Ingresá tu email o usuario';
     if (!form.password) nextErrors.password = 'Ingresá tu contraseña';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
@@ -29,7 +28,7 @@ export default function Login() {
     setSending(true);
     setApiError('');
     try {
-      await login({ email: form.email.trim(), password: form.password });
+      await login({ identifier: form.identifier.trim(), password: form.password });
       navigate(location.state?.from || '/admin', { replace: true });
     } catch (error) {
       setApiError(error.message);
@@ -46,8 +45,8 @@ export default function Login() {
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
         <Alert>{apiError}</Alert>
-        <FormField label="Email" error={errors.email}>
-          <input className={`field ${errors.email ? 'field-error' : ''}`} type="email" autoComplete="email" value={form.email} onChange={update('email')} />
+        <FormField label="Email o usuario" error={errors.identifier}>
+          <input className={`field ${errors.identifier ? 'field-error' : ''}`} autoComplete="username" autoCapitalize="none" value={form.identifier} onChange={update('identifier')} />
         </FormField>
         <FormField label="Contraseña" error={errors.password}>
           <input className={`field ${errors.password ? 'field-error' : ''}`} type="password" autoComplete="current-password" value={form.password} onChange={update('password')} />

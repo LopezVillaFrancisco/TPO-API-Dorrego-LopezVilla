@@ -15,7 +15,7 @@ const LINKS = [
 
 function PendingCount({ value }) {
   if (value <= 0) return null;
-  return <span className="ml-auto rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">{value}</span>;
+  return <span className="ml-auto rounded-sm bg-stone-950 px-1.5 text-[11px] font-bold text-accent">{value}</span>;
 }
 
 export default function AdminLayout() {
@@ -96,14 +96,14 @@ export default function AdminLayout() {
               </button>
             </div>
           </div>
-          <nav className="no-scrollbar mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3 pb-2">
+          <nav className="no-scrollbar mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3">
             {LINKS.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium transition ${
-                    isActive ? 'bg-accent text-stone-900' : 'text-stone-400 hover:bg-stone-800 hover:text-stone-100'
+                  `flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-medium transition ${
+                    isActive ? 'border-accent text-accent' : 'border-transparent text-stone-400 hover:text-stone-100'
                   }`
                 }
               >

@@ -4,7 +4,7 @@ import Modal from './Modal';
 import FormField, { Alert } from './FormField';
 import Badge from './Badge';
 import { productsApi } from '../api';
-import { BADGE_OPTIONS, formatPrice, getPricing, isValidUrl, toLocalInput } from '../utils/format';
+import { BADGE_OPTIONS, endOfDayIso, formatPrice, getPricing, isValidUrl, toDateInput } from '../utils/format';
 
 const emptyForm = (categoryId) => ({
   name: '',
@@ -26,7 +26,7 @@ const toForm = (product) => ({
   price: String(Number(product.price)),
   discountPrice: product.discountPrice !== null && product.discountPrice !== undefined ? String(Number(product.discountPrice)) : '',
   badgeType: product.badgeType,
-  badgeExpiresAt: toLocalInput(product.badgeExpiresAt),
+  badgeExpiresAt: toDateInput(product.badgeExpiresAt),
   isAvailable: product.isAvailable,
   order: String(product.order ?? 0),
   images: product.images?.length ? product.images.map((image) => image.url) : [''],
@@ -57,7 +57,7 @@ const toPayload = (form) => ({
   price: Number(form.price),
   discountPrice: form.discountPrice === '' ? null : Number(form.discountPrice),
   badgeType: form.badgeType,
-  badgeExpiresAt: form.badgeExpiresAt ? new Date(form.badgeExpiresAt).toISOString() : null,
+  badgeExpiresAt: endOfDayIso(form.badgeExpiresAt),
   isAvailable: form.isAvailable,
   order: Number(form.order) || 0,
   images: form.images.map((url) => url.trim()).filter(Boolean),
@@ -112,7 +112,7 @@ export default function ProductEditor({ open, product, categories, defaultCatego
     price: form.price || 0,
     discountPrice: form.discountPrice === '' ? null : form.discountPrice,
     badgeType: form.badgeType,
-    badgeExpiresAt: form.badgeExpiresAt ? new Date(form.badgeExpiresAt).toISOString() : null,
+    badgeExpiresAt: endOfDayIso(form.badgeExpiresAt),
   });
 
   return (
@@ -169,8 +169,8 @@ export default function ProductEditor({ open, product, categories, defaultCatego
               ))}
             </select>
           </FormField>
-          <FormField label="Vence el" hint="Opcional: el chip se oculta solo al vencer">
-            <input className="field" type="datetime-local" disabled={form.badgeType === 'ninguno'} {...bind('badgeExpiresAt')} />
+          <FormField label="Vence el" hint="Opcional: el chip se muestra hasta el final de ese día">
+            <input className="field" type="date" min={toDateInput(new Date())} disabled={form.badgeType === 'ninguno'} {...bind('badgeExpiresAt')} />
           </FormField>
         </div>
 

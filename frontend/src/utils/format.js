@@ -45,13 +45,35 @@ export const badgeLabel = (badge, percent) => {
 export const formatDate = (value) =>
   new Date(value).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
 
-export const toLocalInput = (value) => {
+export const toDateInput = (value) => {
   if (!value) return '';
   const date = new Date(value);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
 
+export const endOfDayIso = (dateInput) => (dateInput ? new Date(`${dateInput}T23:59:59.999`).toISOString() : null);
+
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const USERNAME_REGEX = /^[a-z0-9._]{3,30}$/;
+
+export const whatsappNumber = (phone) => {
+  let digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return null;
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  if (digits.startsWith('54')) return digits;
+  return digits.length === 10 ? `549${digits}` : `54${digits}`;
+};
+
+export const whatsappUrl = (phone, text) => {
+  const number = whatsappNumber(phone);
+  return number ? `https://wa.me/${number}?text=${encodeURIComponent(text)}` : null;
+};
+
+export const mailtoUrl = (email, subject, body) =>
+  `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+export const USERNAME_HINT = 'Entre 3 y 30 caracteres: letras, números, punto o guion bajo';
 
 export const isValidUrl = (value) => {
   try {

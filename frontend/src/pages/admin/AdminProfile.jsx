@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/PageHeader';
 import FormField, { Alert } from '../../components/FormField';
 import Spinner from '../../components/Spinner';
-import { EMAIL_REGEX, formatDate } from '../../utils/format';
+import { EMAIL_REGEX, USERNAME_HINT, USERNAME_REGEX, formatDate } from '../../utils/format';
 
 export default function AdminProfile() {
   const { setUser } = useAuth();
@@ -16,7 +16,15 @@ export default function AdminProfile() {
 
   const fill = (user) => {
     setProfile(user);
-    setForm({ firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone || '', password: '', confirm: '' });
+    setForm({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      username: user.username || '',
+      phone: user.phone || '',
+      password: '',
+      confirm: '',
+    });
   };
 
   useEffect(() => {
@@ -38,6 +46,8 @@ export default function AdminProfile() {
     if (!form.firstName.trim()) next.firstName = 'Ingresá tu nombre';
     if (!form.lastName.trim()) next.lastName = 'Ingresá tu apellido';
     if (!EMAIL_REGEX.test(form.email.trim())) next.email = 'Ingresá un email válido';
+    const username = form.username.trim().toLowerCase();
+    if (username && !USERNAME_REGEX.test(username)) next.username = USERNAME_HINT;
     if (form.password && form.password.length < 6) next.password = 'Mínimo 6 caracteres';
     if (form.password !== form.confirm) next.confirm = 'Las contraseñas no coinciden';
     setErrors(next);
@@ -50,6 +60,7 @@ export default function AdminProfile() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
+        username: form.username.trim().toLowerCase() || null,
         phone: form.phone.trim() || null,
       };
       if (form.password) body.password = form.password;
@@ -78,6 +89,9 @@ export default function AdminProfile() {
           </FormField>
           <FormField label="Email" error={errors.email}>
             <input className={`field ${errors.email ? 'field-error' : ''}`} type="email" {...bind('email')} />
+          </FormField>
+          <FormField label="Usuario" error={errors.username}>
+            <input className={`field ${errors.username ? 'field-error' : ''}`} autoComplete="username" autoCapitalize="none" {...bind('username')} />
           </FormField>
           <FormField label="Teléfono">
             <input className="field" type="tel" {...bind('phone')} />
