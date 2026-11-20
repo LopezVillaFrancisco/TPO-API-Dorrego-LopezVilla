@@ -5,6 +5,7 @@ import PageHeader from '../../components/PageHeader';
 import FormField, { Alert } from '../../components/FormField';
 import Spinner from '../../components/Spinner';
 import { EMAIL_REGEX, USERNAME_HINT, USERNAME_REGEX, formatDate } from '../../utils/format';
+import PasswordInput from '../../components/PasswordInput';
 
 export default function AdminProfile() {
   const { setUser } = useAuth();
@@ -135,10 +136,10 @@ export default function AdminProfile() {
             <p className="mt-1 text-sm text-stone-400">Dejala vacía para mantener la actual.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <FormField label="Contraseña nueva" error={errors.password}>
-                <input className={`field ${errors.password ? 'field-error' : ''}`} type="password" autoComplete="new-password" {...bind('password')} />
+                <PasswordInput className={`field ${errors.password ? 'field-error' : ''}`} autoComplete="new-password" {...bind('password')} />
               </FormField>
               <FormField label="Repetir contraseña" error={errors.confirm}>
-                <input className={`field ${errors.confirm ? 'field-error' : ''}`} type="password" autoComplete="new-password" {...bind('confirm')} />
+                <PasswordInput className={`field ${errors.confirm ? 'field-error' : ''}`} autoComplete="new-password" {...bind('confirm')} />
               </FormField>
             </div>
           </section>

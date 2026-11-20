@@ -24,6 +24,10 @@ body {
   overscroll-behavior: none;
 }
 
+input::-ms-reveal {
+  display: none;
+}
+
 .font-serif {
   font-optical-sizing: none;
   font-variation-settings: "opsz" 36;

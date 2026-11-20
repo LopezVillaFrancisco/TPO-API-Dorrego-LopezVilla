@@ -6,6 +6,7 @@ import Spinner from '../../components/Spinner';
 import { useAuth } from '../../context/AuthContext';
 import useRegistrationOpen from '../../hooks/useRegistrationOpen';
 import { EMAIL_REGEX, USERNAME_HINT, USERNAME_REGEX } from '../../utils/format';
+import PasswordInput from '../../components/PasswordInput';
 
 const FIELDS = [
   { name: 'firstName', label: 'Nombre', autoComplete: 'given-name' },
@@ -95,17 +96,20 @@ export default function Register() {
     >
       <form onSubmit={submit} className="space-y-4" noValidate>
         <Alert>{apiError}</Alert>
-        {FIELDS.map((field) => (
-          <FormField key={field.name} label={field.label} error={errors[field.name]}>
-            <input
-              className={`field ${errors[field.name] ? 'field-error' : ''}`}
-              type={field.type || 'text'}
-              autoComplete={field.autoComplete}
-              value={form[field.name]}
-              onChange={(event) => setForm({ ...form, [field.name]: event.target.value })}
-            />
-          </FormField>
-        ))}
+        {FIELDS.map((field) => {
+          const Input = field.type === 'password' ? PasswordInput : 'input';
+          return (
+            <FormField key={field.name} label={field.label} error={errors[field.name]}>
+              <Input
+                className={`field ${errors[field.name] ? 'field-error' : ''}`}
+                type={field.type || 'text'}
+                autoComplete={field.autoComplete}
+                value={form[field.name]}
+                onChange={(event) => setForm({ ...form, [field.name]: event.target.value })}
+              />
+            </FormField>
+          );
+        })}
         <button className="btn-primary w-full" disabled={sending}>
           {sending ? 'Creando…' : 'Crear cuenta'}
         </button>

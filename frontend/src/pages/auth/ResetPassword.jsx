@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout';
 import FormField, { Alert } from '../../components/FormField';
 import { authApi } from '../../api';
+import PasswordInput from '../../components/PasswordInput';
 
 export default function ResetPassword() {
   const [params] = useSearchParams();
@@ -51,10 +52,10 @@ export default function ResetPassword() {
             </FormField>
           )}
           <FormField label="Contraseña nueva" error={errors.password}>
-            <input className={`field ${errors.password ? 'field-error' : ''}`} type="password" autoComplete="new-password" value={form.password} onChange={update('password')} />
+            <PasswordInput className={`field ${errors.password ? 'field-error' : ''}`} autoComplete="new-password" value={form.password} onChange={update('password')} />
           </FormField>
           <FormField label="Repetir contraseña" error={errors.confirm}>
-            <input className={`field ${errors.confirm ? 'field-error' : ''}`} type="password" autoComplete="new-password" value={form.confirm} onChange={update('confirm')} />
+            <PasswordInput className={`field ${errors.confirm ? 'field-error' : ''}`} autoComplete="new-password" value={form.confirm} onChange={update('confirm')} />
           </FormField>
           <button className="btn-primary w-full" disabled={sending}>
             {sending ? 'Guardando…' : 'Guardar contraseña'}

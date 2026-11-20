@@ -4,6 +4,7 @@ import AuthLayout from '../../components/AuthLayout';
 import FormField, { Alert } from '../../components/FormField';
 import { useAuth } from '../../context/AuthContext';
 import useRegistrationOpen from '../../hooks/useRegistrationOpen';
+import PasswordInput from '../../components/PasswordInput';
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
@@ -51,7 +52,7 @@ export default function Login() {
           <input className={`field ${errors.identifier ? 'field-error' : ''}`} autoComplete="username" autoCapitalize="none" value={form.identifier} onChange={update('identifier')} />
         </FormField>
         <FormField label="Contraseña" error={errors.password}>
-          <input className={`field ${errors.password ? 'field-error' : ''}`} type="password" autoComplete="current-password" value={form.password} onChange={update('password')} />
+          <PasswordInput className={`field ${errors.password ? 'field-error' : ''}`} autoComplete="current-password" value={form.password} onChange={update('password')} />
         </FormField>
         <button className="btn-primary w-full" disabled={sending}>
           {sending ? 'Ingresando…' : 'Ingresar'}

@@ -7,6 +7,7 @@ import Modal, { ConfirmModal } from '../../components/Modal';
 import FormField, { Alert } from '../../components/FormField';
 import Spinner from '../../components/Spinner';
 import { EMAIL_REGEX, USERNAME_HINT, USERNAME_REGEX, formatDay } from '../../utils/format';
+import PasswordInput from '../../components/PasswordInput';
 
 const EMPTY_FORM = { firstName: '', lastName: '', username: '', email: '', phone: '', password: '', confirm: '' };
 
@@ -113,10 +114,10 @@ function MemberModal({ open, member, onClose, onSaved }) {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={editing ? 'Contraseña nueva' : 'Contraseña'} error={errors.password}>
-            <input type="password" autoComplete="new-password" {...bind('password')} />
+            <PasswordInput autoComplete="new-password" {...bind('password')} />
           </FormField>
           <FormField label="Repetir contraseña" error={errors.confirm}>
-            <input type="password" autoComplete="new-password" {...bind('confirm')} />
+            <PasswordInput autoComplete="new-password" {...bind('confirm')} />
           </FormField>
         </div>
         <p className="text-xs text-stone-500">
