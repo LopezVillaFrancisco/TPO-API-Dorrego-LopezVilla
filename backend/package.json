@@ -5,8 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch app.js",
-    "seed": "node seed/seed.js"
+    "dev": "node --watch app.js"
   },
   "license": "ISC",
   "dependencies": {
