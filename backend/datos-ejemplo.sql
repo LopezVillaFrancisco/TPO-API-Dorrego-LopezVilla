@@ -20,31 +20,56 @@ INSERT INTO categories (name, "order") VALUES
   ('Bebidas', 6)
 ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO products (category_id, name, description, price, discount_price, badge_type, badge_expires_at, is_available, "order")
-SELECT c.id, v.name, v.description, v.price, v.discount_price, v.badge_type::enum_products_badge_type, v.badge_expires_at, v.is_available, v.ord
+INSERT INTO products (category_id, name, price, discount_price, badge_type, badge_expires_at, is_available, "order")
+SELECT c.id, v.name, v.price, v.discount_price, v.badge_type::enum_products_badge_type, v.badge_expires_at, v.is_available, v.ord
 FROM (VALUES
-  ('Pizzas', 'Margherita', 'Salsa de tomate San Marzano, mozzarella fior di latte, albahaca fresca y oliva extra virgen.', 13500, NULL, 'mas_vendido', NULL, TRUE, 1),
-  ('Pizzas', 'Diavola', 'Tomate, mozzarella, salame picante y un toque de miel picante.', 15500, 12900, 'descuento', NOW() + INTERVAL '30 days', TRUE, 2),
-  ('Pizzas', 'Vegetariana', 'Morrones asados, cebolla morada, aceitunas negras y rúcula fresca.', 14800, NULL, 'nuevo', NULL, TRUE, 3),
-  ('Pastas', 'Penne all''arrabbiata', 'Salsa de tomate picante con ajo, perejil y parmesano.', 12800, NULL, 'ninguno', NULL, TRUE, 1),
-  ('Pastas', 'Fettuccine con lomo y hongos', 'Fettuccine caseros con tiras de lomo, hongos de pino y crema.', 16900, NULL, 'recomendado_chef', NULL, TRUE, 2),
-  ('Pastas', 'Farfalle al pesto', 'Pesto de albahaca, tomates cherry y hojas verdes.', 11900, NULL, 'ninguno', NULL, FALSE, 3),
-  ('Pastas', 'Spaghetti frutti di mare', 'Langostinos, tomates cherry, ajo y vino blanco.', 18900, NULL, 'ultimas_unidades', NULL, TRUE, 4),
-  ('Carnes', 'Bife de chorizo con papas', 'Bife de 400 g a la parrilla con papas rústicas y chimichurri.', 22500, NULL, 'mas_vendido', NULL, TRUE, 1),
-  ('Carnes', 'Entraña a la parrilla', 'Entraña jugosa cortada en tiras con sal de Maldon.', 21000, 17500, 'descuento', NOW() - INTERVAL '2 days', TRUE, 2),
-  ('Carnes', 'Parrillada para compartir', 'Brochettes de pollo y carne, vegetales asados y salsas de la casa. Para 2 personas.', 39900, NULL, 'nuevo', NULL, TRUE, 3),
-  ('Carnes', 'Albóndigas caseras', 'Albóndigas de carne al horno sobre colchón de rúcula.', 13900, NULL, 'ninguno', NULL, TRUE, 4),
-  ('Hamburguesas', 'Clásica', 'Medallón de 180 g, lechuga, tomate, queso y pan de papa.', 12500, NULL, 'ninguno', NULL, TRUE, 1),
-  ('Hamburguesas', 'Doble cheddar', 'Doble medallón, doble cheddar, cebolla y salsa de la casa.', 15900, 13500, 'descuento', NULL, TRUE, 2),
-  ('Postres', 'Tiramisú', 'Vainillas embebidas en café, crema de mascarpone y cacao amargo.', 7900, NULL, 'recomendado_chef', NULL, TRUE, 1),
-  ('Postres', 'Panna cotta de frutillas', 'Panna cotta de vainilla con coulis y frutillas frescas.', 6900, NULL, 'ninguno', NULL, TRUE, 2),
-  ('Postres', 'Copa chocotorta', 'Capas de galletitas de chocolate, dulce de leche y queso crema.', 7500, NULL, 'nuevo', NULL, TRUE, 3),
-  ('Postres', 'Donas glaseadas', 'Dos donas caseras con glaseado de chocolate y granas.', 5900, NULL, 'ultimas_unidades', NULL, TRUE, 4),
-  ('Bebidas', 'Cócteles de autor', 'Consultá la carta de tragos del día.', 8500, NULL, 'ninguno', NULL, TRUE, 1),
-  ('Bebidas', 'Cuba libre', 'Ron, cola, lima y mucho hielo.', 7200, NULL, 'mas_vendido', NULL, TRUE, 2)
-) AS v(category, name, description, price, discount_price, badge_type, badge_expires_at, is_available, ord)
+  ('Pizzas', 'Margherita', 13500, NULL, 'mas_vendido', NULL, TRUE, 1),
+  ('Pizzas', 'Diavola', 15500, 12900, 'descuento', NOW() + INTERVAL '30 days', TRUE, 2),
+  ('Pizzas', 'Vegetariana', 14800, NULL, 'nuevo', NULL, TRUE, 3),
+  ('Pastas', 'Penne all''arrabbiata', 12800, NULL, 'ninguno', NULL, TRUE, 1),
+  ('Pastas', 'Fettuccine con lomo y hongos', 16900, NULL, 'recomendado_chef', NULL, TRUE, 2),
+  ('Pastas', 'Farfalle al pesto', 11900, NULL, 'ninguno', NULL, FALSE, 3),
+  ('Pastas', 'Spaghetti frutti di mare', 18900, NULL, 'ultimas_unidades', NULL, TRUE, 4),
+  ('Carnes', 'Bife de chorizo con papas', 22500, NULL, 'mas_vendido', NULL, TRUE, 1),
+  ('Carnes', 'Entraña a la parrilla', 21000, 17500, 'descuento', NOW() - INTERVAL '2 days', TRUE, 2),
+  ('Carnes', 'Parrillada para compartir', 39900, NULL, 'nuevo', NULL, TRUE, 3),
+  ('Carnes', 'Albóndigas caseras', 13900, NULL, 'ninguno', NULL, TRUE, 4),
+  ('Hamburguesas', 'Clásica', 12500, NULL, 'ninguno', NULL, TRUE, 1),
+  ('Hamburguesas', 'Doble cheddar', 15900, 13500, 'descuento', NULL, TRUE, 2),
+  ('Postres', 'Tiramisú', 7900, NULL, 'recomendado_chef', NULL, TRUE, 1),
+  ('Postres', 'Panna cotta de frutillas', 6900, NULL, 'ninguno', NULL, TRUE, 2),
+  ('Postres', 'Copa chocotorta', 7500, NULL, 'nuevo', NULL, TRUE, 3),
+  ('Postres', 'Donas glaseadas', 5900, NULL, 'ultimas_unidades', NULL, TRUE, 4),
+  ('Bebidas', 'Cócteles de autor', 8500, NULL, 'ninguno', NULL, TRUE, 1),
+  ('Bebidas', 'Cuba libre', 7200, NULL, 'mas_vendido', NULL, TRUE, 2)
+) AS v(category, name, price, discount_price, badge_type, badge_expires_at, is_available, ord)
 JOIN categories c ON c.name = v.category
 WHERE NOT EXISTS (SELECT 1 FROM products p WHERE p.name = v.name);
+
+-- Descripciones y etiquetas. Es un UPDATE para que también se actualicen los productos de ejemplo ya cargados.
+UPDATE products p SET description = v.description, tags = v.tags::varchar(30)[]
+FROM (VALUES
+  ('Margherita', 'La clásica napolitana. Masa de 48 horas de fermentación, salsa de tomate San Marzano, mozzarella fior di latte, albahaca fresca y un hilo de oliva extra virgen. Se cocina a la piedra en horno a leña. 8 porciones, ideal para 2 personas.', '{vegetariano}'),
+  ('Diavola', 'Para los que buscan algo con carácter. Salsa de tomate, mozzarella, rodajas de salame picante y, al salir del horno, un toque de miel con ají que equilibra lo dulce y lo picante. 8 porciones.', '{picante}'),
+  ('Vegetariana', 'Morrones rojos y amarillos asados, cebolla morada, aceitunas negras y mozzarella sobre salsa de tomate. Se termina con rúcula fresca y parmesano en lascas. Sin carne y con mucho sabor. 8 porciones.', '{vegetariano}'),
+  ('Penne all''arrabbiata', 'Penne al dente en salsa de tomate cocida a fuego lento con ajo, ají molido y perejil fresco. Se sirve con parmesano rallado aparte, así lo agregás a gusto. Nivel de picante: medio. Porción individual abundante.', '{vegetariano,picante}'),
+  ('Fettuccine con lomo y hongos', 'Fettuccine hechos en casa cada mañana, con tiras de lomo salteadas, hongos de pino y champiñones en una salsa de crema y vino blanco. Terminado con ciboulette. El plato preferido del chef.', '{}'),
+  ('Farfalle al pesto', 'Farfalle con pesto de albahaca, piñones y parmesano preparado en el día, tomates cherry confitados y hojas verdes. Fresco y liviano. Contiene frutos secos.', '{vegetariano,frutos_secos}'),
+  ('Spaghetti frutti di mare', 'Spaghetti con langostinos, mejillones y calamares salteados en oliva con ajo, tomates cherry y un toque de vino blanco. Sin crema ni manteca: todo el sabor viene de los mariscos. Contiene mariscos.', '{sin_lactosa}'),
+  ('Bife de chorizo con papas', 'Bife de chorizo de 400 g de novillo, a la parrilla con leña y en el punto que pidas. Viene con papas rústicas al horno con romero y chimichurri de la casa. Apto celíacos: lo cocinamos en una zona separada de la parrilla.', '{sin_tacc,sin_lactosa}'),
+  ('Entraña a la parrilla', 'Entraña jugosa de 350 g, cortada en tiras y terminada con sal de Maldon. Se acompaña con ensalada de hojas verdes y tomate. Un corte sabroso y tierno, ideal jugoso.', '{sin_tacc,sin_lactosa}'),
+  ('Parrillada para compartir', 'Tabla con brochettes de pollo y de carne, chorizo, morcilla, vegetales asados (zapallo, morrón y cebolla) y tres salsas de la casa: chimichurri, criolla y alioli. Alcanza para 2 personas con buen apetito.', '{sin_lactosa,para_compartir}'),
+  ('Albóndigas caseras', 'Seis albóndigas de carne vacuna y cerdo, hechas a mano y horneadas en salsa de tomate. Se sirven sobre colchón de rúcula con parmesano y pan casero para mojar en la salsa.', '{}'),
+  ('Clásica', 'Medallón de 180 g de carne vacuna, a la plancha, con queso tybo, lechuga, tomate, cebolla y mayonesa de la casa en pan de papa tostado. Viene con papas fritas.', '{}'),
+  ('Doble cheddar', 'Dos medallones de 120 g, doble cheddar fundido, cebolla caramelizada, pepinos encurtidos y salsa de la casa en pan de papa con sésamo. Viene con papas fritas. Para los que tienen hambre de verdad.', '{}'),
+  ('Tiramisú', 'Receta italiana: vainillas embebidas en café espresso y licor de café, intercaladas con crema de mascarpone y terminadas con cacao amargo. Lo preparamos en el día y lo servimos bien frío.', '{vegetariano,con_alcohol}'),
+  ('Panna cotta de frutillas', 'Crema cocida con vaina de vainilla natural, suave y cremosa, con coulis de frutillas y frutillas frescas cortadas. Un postre liviano para cerrar la comida.', '{vegetariano,sin_tacc}'),
+  ('Copa chocotorta', 'Nuestra versión en copa del clásico argentino: capas de galletitas de chocolate humedecidas en café, crema de dulce de leche y queso crema, con chocolate rallado arriba.', '{vegetariano}'),
+  ('Donas glaseadas', 'Dos donas caseras fritas en el momento, esponjosas por dentro, con glaseado de chocolate semiamargo y granas de colores. Van muy bien con un café.', '{vegetariano}'),
+  ('Cócteles de autor', 'Tragos creados por nuestro bartender con frutas de estación, hierbas frescas y destilados seleccionados. La propuesta cambia cada día: preguntale al mozo cuál es el de hoy. También hay versiones sin alcohol.', '{con_alcohol,vegano}'),
+  ('Cuba libre', 'Ron añejo, cola bien fría, jugo de lima recién exprimido y mucho hielo. Se sirve en vaso alto con una rodaja de lima. Refrescante y fácil de tomar.', '{con_alcohol,vegano,sin_tacc}')
+) AS v(name, description, tags)
+WHERE p.name = v.name;
 
 INSERT INTO product_images (product_id, url, "order")
 SELECT p.id, 'https://images.unsplash.com/photo-' || v.photo || '?w=1080&q=80', v.ord

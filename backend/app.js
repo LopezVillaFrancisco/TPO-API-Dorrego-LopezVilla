@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
+const { DataTypes } = require('sequelize');
 const sequelize = require('./databases/database');
 require('./models/AdminUser.model');
 require('./models/BusinessInfo.model');
@@ -31,10 +32,24 @@ app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({ status: err.statusCode || 500, message: err.message || 'Error interno' });
 });
 
+// sync() crea las tablas que faltan pero no agrega columnas nuevas a tablas que ya existen
+const addMissingColumns = async () => {
+  const queryInterface = sequelize.getQueryInterface();
+  const columns = await queryInterface.describeTable('products');
+  if (!columns.tags) {
+    await queryInterface.addColumn('products', 'tags', {
+      type: DataTypes.ARRAY(DataTypes.STRING(30)),
+      allowNull: false,
+      defaultValue: [],
+    });
+  }
+};
+
 const connectDatabase = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
+    await addMissingColumns();
     console.log('Conexión a la base de datos establecida');
   } catch (error) {
     console.error('No se pudo conectar a la base de datos:', error.message);

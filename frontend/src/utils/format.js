@@ -19,6 +19,18 @@ export const BADGE_OPTIONS = [
 
 const BADGE_LABELS = Object.fromEntries(BADGE_OPTIONS.map((option) => [option.value, option.label]));
 
+// Mismo listado que Product.TAGS en el backend
+export const TAG_OPTIONS = [
+  { value: 'sin_tacc', label: 'Sin TACC' },
+  { value: 'vegetariano', label: 'Vegetariano' },
+  { value: 'vegano', label: 'Vegano' },
+  { value: 'sin_lactosa', label: 'Sin lactosa' },
+  { value: 'picante', label: 'Picante' },
+  { value: 'frutos_secos', label: 'Contiene frutos secos' },
+  { value: 'con_alcohol', label: 'Con alcohol' },
+  { value: 'para_compartir', label: 'Para compartir' },
+];
+
 export const MESSAGE_STATUSES = [
   { value: 'pendiente', label: 'Pendiente' },
   { value: 'leido', label: 'Leído' },

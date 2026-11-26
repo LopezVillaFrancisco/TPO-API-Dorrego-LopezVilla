@@ -60,9 +60,9 @@ Los mensajes de cada uno aparecen en la misma terminal con las etiquetas `back` 
 
 ## Datos de ejemplo
 
-`backend/datos-ejemplo.sql` carga los datos del comercio, 6 categorías, 19 productos con fotos y 2 mensajes. Incluye un descuento vigente, uno vencido y un producto agotado.
+`backend/datos-ejemplo.sql` carga los datos del comercio, 6 categorías, 19 productos con fotos y 2 mensajes. Incluye un descuento vigente, uno vencido y un producto agotado. Cada producto tiene una descripción completa (ingredientes, preparación y porción) y sus etiquetas para el cliente, como Sin TACC, Vegetariano o Picante.
 
-Se corre en el editor SQL de la base (en Supabase, SQL Editor), después de haber levantado el backend una vez para que existan las tablas. Se puede correr más de una vez sin duplicar datos.
+Se corre en el editor SQL de la base (en Supabase, SQL Editor), después de haber levantado el backend una vez para que existan las tablas y la columna `tags`. Se puede correr más de una vez sin duplicar datos; cada vez vuelve a poner las descripciones y etiquetas de ejemplo en esos 19 productos.
 
 ## Variables de entorno
 

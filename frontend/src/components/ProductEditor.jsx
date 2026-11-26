@@ -3,8 +3,11 @@ import { ArrowDown, ArrowUp, ImageOff, Plus, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import FormField, { Alert } from './FormField';
 import Badge from './Badge';
+import { TAG_ICONS } from './TagChips';
 import { productsApi } from '../api';
-import { BADGE_OPTIONS, endOfDayIso, formatPrice, getPricing, isValidUrl, toDateInput } from '../utils/format';
+import { BADGE_OPTIONS, TAG_OPTIONS, endOfDayIso, formatPrice, getPricing, isValidUrl, toDateInput } from '../utils/format';
+
+const SHORT_DESCRIPTION = 80;
 
 const emptyForm = (categoryId) => ({
   name: '',
@@ -14,6 +17,7 @@ const emptyForm = (categoryId) => ({
   discountPrice: '',
   badgeType: 'ninguno',
   badgeExpiresAt: '',
+  tags: [],
   isAvailable: true,
   order: '0',
   images: [''],
@@ -27,6 +31,7 @@ const toForm = (product) => ({
   discountPrice: product.discountPrice !== null && product.discountPrice !== undefined ? String(Number(product.discountPrice)) : '',
   badgeType: product.badgeType,
   badgeExpiresAt: toDateInput(product.badgeExpiresAt),
+  tags: product.tags || [],
   isAvailable: product.isAvailable,
   order: String(product.order ?? 0),
   images: product.images?.length ? product.images.map((image) => image.url) : [''],
@@ -58,6 +63,7 @@ const toPayload = (form) => ({
   discountPrice: form.discountPrice === '' ? null : Number(form.discountPrice),
   badgeType: form.badgeType,
   badgeExpiresAt: endOfDayIso(form.badgeExpiresAt),
+  tags: form.tags,
   isAvailable: form.isAvailable,
   order: Number(form.order) || 0,
   images: form.images.map((url) => url.trim()).filter(Boolean),
@@ -79,7 +85,12 @@ export default function ProductEditor({ open, product, categories, defaultCatego
   const set = (field, value) => setForm((current) => ({ ...current, [field]: value }));
   const bind = (field) => ({ value: form[field], onChange: (event) => set(field, event.target.value) });
 
-  const setImage = (index, value) => set('images', form.images.map((url, i) => (i === index ? value : url)));
+  const toggleTag = (tag) =>
+    set('tags', form.tags.includes(tag) ? form.tags.filter((value) => value !== tag) : [...form.tags, tag]);
+
+  const descriptionLength = form.description.trim().length;
+
+  const setImage =(index, value) => set('images', form.images.map((url, i) => (i === index ? value : url)));
   const removeImage = (index) => set('images', form.images.length > 1 ? form.images.filter((_, i) => i !== index) : ['']);
   const moveImage = (index, direction) => {
     const target = index + direction;
@@ -145,9 +156,43 @@ export default function ProductEditor({ open, product, categories, defaultCatego
             </select>
           </FormField>
         </div>
-        <FormField label="Descripción">
-          <textarea className="field min-h-20 resize-none" {...bind('description')} />
+        <FormField
+          label="Descripción"
+          hint={
+            descriptionLength > 0 && descriptionLength < SHORT_DESCRIPTION
+              ? `Es corta (${descriptionLength} caracteres). Sumá ingredientes, preparación o tamaño de la porción.`
+              : 'Contá qué lleva, cómo se prepara, con qué viene y para cuántos alcanza.'
+          }
+        >
+          <textarea
+            className="field min-h-28 resize-y"
+            placeholder="Ej.: Masa de fermentación lenta, salsa de tomate San Marzano, mozzarella fior di latte y albahaca fresca. Se cocina en horno a leña. 8 porciones."
+            {...bind('description')}
+          />
         </FormField>
+
+        <div>
+          <span className="label">Etiquetas para el cliente</span>
+          <div className="flex flex-wrap gap-2">
+            {TAG_OPTIONS.map(({ value, label }) => {
+              const Icon = TAG_ICONS[value];
+              const active = form.tags.includes(value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggleTag(value)}
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    active ? 'border-accent bg-accent text-stone-900' : 'border-stone-700 text-stone-300 hover:bg-stone-800'
+                  }`}
+                >
+                  <Icon size={13} /> {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <FormField label="Precio" error={errors.price}>

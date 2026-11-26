@@ -14,6 +14,7 @@ const UPDATABLE_FIELDS = [
   'discountPrice',
   'badgeType',
   'badgeExpiresAt',
+  'tags',
   'isAvailable',
   'order',
 ];
@@ -54,6 +55,12 @@ const validateFields = (fields) => {
   });
   if (fields.badgeType !== undefined && !Product.BADGE_TYPES.includes(fields.badgeType)) {
     throw httpError(400, `badgeType debe ser uno de: ${Product.BADGE_TYPES.join(', ')}`);
+  }
+  if (fields.tags !== undefined) {
+    if (!Array.isArray(fields.tags) || fields.tags.some((tag) => !Product.TAGS.includes(tag))) {
+      throw httpError(400, `tags debe ser un array con valores de: ${Product.TAGS.join(', ')}`);
+    }
+    fields.tags = [...new Set(fields.tags)];
   }
 };
 

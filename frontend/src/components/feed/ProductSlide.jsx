@@ -1,7 +1,8 @@
-import { memo, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChefHat, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, EyeOff, MessageCircle, Pencil } from 'lucide-react';
 import Badge from '../Badge';
+import TagChips from '../TagChips';
 import useElementSize from '../../hooks/useElementSize';
 import { formatPrice, getPricing, pad } from '../../utils/format';
 import { photoUrl, thumbUrl } from '../../utils/photo';
@@ -30,6 +31,38 @@ function UnavailableTag() {
     <span className="rounded-sm bg-stone-950/85 px-2.5 py-1.5 text-[13px] font-semibold text-stone-300">
       No disponible
     </span>
+  );
+}
+
+// En el celular la descripción va sobre la foto: se muestran 3 líneas y el resto con "Ver más"
+function MobileDescription({ text, width }) {
+  const ref = useRef(null);
+  const [expanded, setExpanded] = useState(false);
+  const [clamped, setClamped] = useState(false);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (element && !expanded) setClamped(element.scrollHeight > element.clientHeight + 1);
+  }, [text, width, expanded]);
+
+  return (
+    <div className="mt-3 max-w-xl">
+      <p
+        ref={ref}
+        className={`text-[15px] leading-relaxed text-stone-300 md:text-lg ${expanded ? '' : 'line-clamp-3'}`}
+      >
+        {text}
+      </p>
+      {(clamped || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="mt-1 cursor-pointer text-sm font-semibold text-accent"
+        >
+          {expanded ? 'Ver menos' : 'Ver más'}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -161,7 +194,8 @@ function ProductSlide({
           {dots && <div className="mb-4">{dots}</div>}
           <p className="text-sm font-medium text-accent">{categoryName}</p>
           <h2 className="mt-2 font-serif text-[2.5rem] leading-[1.05] text-stone-50 md:text-6xl">{product.name}</h2>
-          {product.description && <p className="mt-3 line-clamp-3 max-w-xl text-[15px] leading-relaxed text-stone-300 md:text-lg">{product.description}</p>}
+          <TagChips tags={product.tags} className="mt-3" />
+          {product.description && <MobileDescription text={product.description} width={frame.width} />}
           <div className="mt-5 flex items-end justify-between">
             {priceBlock(false)}
             <div className="pb-1.5">
@@ -192,6 +226,7 @@ function ProductSlide({
           )}
           <p className="text-sm font-medium text-accent">{categoryName}</p>
           <h2 className="mt-3 font-serif text-5xl leading-[1.05] text-stone-50 xl:text-6xl">{product.name}</h2>
+          <TagChips tags={product.tags} className="mt-4" />
           {product.description && <p className="mt-5 max-w-md text-lg leading-relaxed text-stone-300">{product.description}</p>}
           <div className="mt-8">{priceBlock(true)}</div>
           <div className="mt-8 flex flex-wrap items-center gap-3">

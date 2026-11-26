@@ -5,6 +5,7 @@ import PageHeader from '../../components/PageHeader';
 import ProductEditor from '../../components/ProductEditor';
 import { ConfirmModal } from '../../components/Modal';
 import Badge from '../../components/Badge';
+import TagChips from '../../components/TagChips';
 import Switch from '../../components/Switch';
 import Spinner from '../../components/Spinner';
 import { Alert } from '../../components/FormField';
@@ -140,6 +141,7 @@ export default function AdminProducts() {
                 <p className="text-xs text-accent">{product.category?.name} · orden {product.order}</p>
                 <h3 className="mt-1 font-serif text-xl leading-tight">{product.name}</h3>
                 {product.description && <p className="mt-1 line-clamp-2 text-sm text-stone-400">{product.description}</p>}
+                <TagChips tags={product.tags} size="sm" className="mt-2" />
                 <div className="mt-3 flex items-baseline gap-2">
                   <span className="text-lg font-semibold">{formatPrice(pricing.final)}</span>
                   {pricing.hasDiscount && <span className="text-sm text-stone-500 line-through">{formatPrice(pricing.price)}</span>}

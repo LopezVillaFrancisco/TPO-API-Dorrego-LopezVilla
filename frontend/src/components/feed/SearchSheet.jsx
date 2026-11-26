@@ -3,9 +3,10 @@ import { ChefHat, Search } from 'lucide-react';
 import BottomSheet from '../BottomSheet';
 import Badge from '../Badge';
 import Spinner from '../Spinner';
+import TagChips, { TAG_ICONS } from '../TagChips';
 import { productsApi } from '../../api';
 import useDebounced from '../../hooks/useDebounced';
-import { formatPrice, getPricing } from '../../utils/format';
+import { TAG_OPTIONS, formatPrice, getPricing } from '../../utils/format';
 import { thumbUrl } from '../../utils/photo';
 
 const SORTS = [
@@ -34,6 +35,7 @@ export default function SearchSheet({ open, onClose, categories, onSelect }) {
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [onlyPromo, setOnlyPromo] = useState(false);
   const [maxPrice, setMaxPrice] = useState('');
+  const [tags, setTags] = useState([]);
   const [sort, setSort] = useState('menu');
   const [results, setResults] = useState([]);
   const [status, setStatus] = useState('idle');
@@ -61,11 +63,14 @@ export default function SearchSheet({ open, onClose, categories, onSelect }) {
       .map((product) => ({ product, pricing: getPricing(product) }))
       .filter(({ product }) => !onlyAvailable || product.isAvailable)
       .filter(({ pricing }) => !onlyPromo || pricing.badge !== 'ninguno')
-      .filter(({ pricing }) => !maxPrice || pricing.final <= Number(maxPrice));
+      .filter(({ pricing }) => !maxPrice || pricing.final <= Number(maxPrice))
+      .filter(({ product }) => tags.every((tag) => product.tags?.includes(tag)));
     if (sort === 'price-asc') list.sort((a, b) => a.pricing.final - b.pricing.final);
     if (sort === 'price-desc') list.sort((a, b) => b.pricing.final - a.pricing.final);
     return list;
-  }, [results, onlyAvailable, onlyPromo, maxPrice, sort]);
+  }, [results, onlyAvailable, onlyPromo, maxPrice, tags, sort]);
+
+  const toggleTag = (tag) => setTags((current) => (current.includes(tag) ? current.filter((value) => value !== tag) : [...current, tag]));
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Buscar" draggable={false} tall>
@@ -110,6 +115,16 @@ export default function SearchSheet({ open, onClose, categories, onSelect }) {
             ))}
           </select>
         </div>
+        <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
+          {TAG_OPTIONS.map(({ value, label }) => {
+            const Icon = TAG_ICONS[value];
+            return (
+              <Toggle key={value} active={tags.includes(value)} onClick={() => toggleTag(value)}>
+                <span className="inline-flex items-center gap-1.5"><Icon size={13} /> {label}</span>
+              </Toggle>
+            );
+          })}
+        </div>
       </div>
 
       {status === 'loading' && results.length === 0 && (
@@ -141,6 +156,7 @@ export default function SearchSheet({ open, onClose, categories, onSelect }) {
                   {pricing.hasDiscount && <span className="text-xs text-stone-500 line-through">{formatPrice(pricing.price)}</span>}
                   {!product.isAvailable && <span className="text-xs text-stone-500">No disponible</span>}
                 </span>
+                <TagChips tags={product.tags} size="sm" className="mt-1.5" />
               </span>
               <Badge badge={pricing.badge} percent={pricing.percent} size="sm" />
             </button>
