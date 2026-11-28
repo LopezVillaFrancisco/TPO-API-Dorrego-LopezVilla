@@ -5,6 +5,7 @@ const ProductImage = require('../models/ProductImage.model');
 const Category = require('../models/Category.model');
 
 const { httpError, escapeLike } = require('../utils/http');
+const { can } = require('../auth/permissions');
 
 const UPDATABLE_FIELDS = [
   'categoryId',
@@ -135,8 +136,16 @@ const createProduct = async (data) => {
   return getProductById(productId);
 };
 
-const updateProduct = async (id, data) => {
+const updateProduct = async (id, data, role) => {
   const { images, ...fields } = data;
+
+  // Sin permiso de edición de la carta, solo se puede cambiar la disponibilidad
+  if (role && !can(role, 'menu.edit')) {
+    const extra = Object.keys(data).filter((key) => key !== 'isAvailable');
+    if (extra.length || data.isAvailable === undefined) {
+      throw httpError(403, 'Tu rol solo puede marcar productos como disponibles o agotados');
+    }
+  }
 
   const product = await Product.findByPk(id);
   if (!product) {

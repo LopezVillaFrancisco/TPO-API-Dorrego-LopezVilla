@@ -8,6 +8,8 @@ import QuickRepliesManager from '../../components/QuickRepliesManager';
 import Spinner from '../../components/Spinner';
 import { Alert } from '../../components/FormField';
 import useDebounced from '../../hooks/useDebounced';
+import { useAuth } from '../../context/AuthContext';
+import { can } from '../../utils/permissions';
 import { MESSAGE_STATUSES, formatDate, mailtoUrl, whatsappUrl } from '../../utils/format';
 
 const STATUS = {
@@ -100,6 +102,7 @@ function MessageRow({ message, selected, onSelect }) {
 }
 
 function ReplyBox({ message, replies, onManageReplies, onReplied }) {
+  // onManageReplies llega vacío cuando el rol no puede editar las respuestas rápidas
   const firstName = firstNameOf(message.name);
   const [text, setText] = useState(`Hola ${firstName}, `);
   const textareaRef = useRef(null);
@@ -148,9 +151,11 @@ function ReplyBox({ message, replies, onManageReplies, onReplied }) {
             {reply.title}
           </button>
         ))}
-        <button type="button" onClick={onManageReplies} className="flex cursor-pointer items-center gap-1 px-1.5 py-1 text-xs text-stone-500 transition hover:text-stone-200">
-          <Settings2 size={13} /> {replies.length ? 'Editar respuestas rápidas' : 'Crear respuestas rápidas'}
-        </button>
+        {onManageReplies && (
+          <button type="button" onClick={onManageReplies} className="flex cursor-pointer items-center gap-1 px-1.5 py-1 text-xs text-stone-500 transition hover:text-stone-200">
+            <Settings2 size={13} /> {replies.length ? 'Editar respuestas rápidas' : 'Crear respuestas rápidas'}
+          </button>
+        )}
       </div>
 
       <textarea
@@ -245,9 +250,11 @@ function MessageDetail({ message, replies, onManageReplies, onBack, onStatus, on
           <button type="button" className="flex cursor-pointer items-center gap-1.5 text-sm text-stone-400 transition hover:text-stone-100" onClick={() => onArchive(message, !archived)}>
             {archived ? <><ArchiveRestore size={14} /> Volver a la bandeja</> : <><Archive size={14} /> Archivar</>}
           </button>
-          <button type="button" className="flex cursor-pointer items-center gap-1.5 text-sm text-stone-500 transition hover:text-red-400" onClick={() => onDelete(message)}>
-            <Trash2 size={14} /> Eliminar
-          </button>
+          {onDelete && (
+            <button type="button" className="flex cursor-pointer items-center gap-1.5 text-sm text-stone-500 transition hover:text-red-400" onClick={() => onDelete(message)}>
+              <Trash2 size={14} /> Eliminar
+            </button>
+          )}
         </div>
       </div>
 
@@ -272,6 +279,7 @@ function MessageDetail({ message, replies, onManageReplies, onBack, onStatus, on
 
 export default function AdminMessages() {
   const { refreshPending } = useOutletContext();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [box, setBox] = useState('bandeja');
   const [filter, setFilter] = useState('');
@@ -494,11 +502,11 @@ export default function AdminMessages() {
             <MessageDetail
               message={selected}
               replies={replies}
-              onManageReplies={() => setManaging(true)}
+              onManageReplies={can(user, 'quickReplies.edit') ? () => setManaging(true) : null}
               onBack={() => setSelectedId(null)}
               onStatus={changeStatus}
               onArchive={setArchived}
-              onDelete={setToDelete}
+              onDelete={can(user, 'messages.delete') ? setToDelete : null}
               onSaveNote={saveNote}
             />
           ) : (

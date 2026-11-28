@@ -14,7 +14,7 @@ const createProduct = asyncHandler(async (req) => ({
 }));
 
 const updateProduct = asyncHandler(async (req) => ({
-  data: await ProductService.updateProduct(req.params.id, req.body),
+  data: await ProductService.updateProduct(req.params.id, req.body, req.user.role),
   message: 'Producto actualizado correctamente',
 }));
 

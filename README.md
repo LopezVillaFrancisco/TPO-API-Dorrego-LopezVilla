@@ -54,7 +54,7 @@ Los mensajes de cada uno aparecen en la misma terminal con las etiquetas `back` 
 
 ### Primer uso
 
-1. Entrar a `http://localhost:5173/registro` y crear el primer administrador. El registro solo está abierto mientras no exista ningún administrador; después se cierra y los demás usuarios se agregan desde el panel, en Equipo.
+1. Entrar a `http://localhost:5173/registro` y crear el primer administrador, que queda como **Dueño**. El registro solo está abierto mientras no exista ningún administrador; después se cierra y los demás usuarios se agregan desde el panel, en Equipo.
 2. Ingresar con el email o el usuario y la contraseña.
 3. Cargar categorías y productos desde el panel (`/admin`), o usar los datos de ejemplo.
 
@@ -145,6 +145,7 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 
 - [docs/consultas.md](docs/consultas.md): recorrido de una consulta, estados y respuesta.
 - [docs/validaciones.md](docs/validaciones.md): reglas de cada campo y límites de pedidos.
+- [docs/roles.md](docs/roles.md): roles del panel (Dueño, Encargado, Atención) y qué puede hacer cada uno.
 
 ## Pantallas
 
@@ -158,5 +159,5 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 | `/admin/categorias` | Categorías |
 | `/admin/mensajes` | Consultas recibidas |
 | `/admin/comercio` | Datos del comercio |
-| `/admin/equipo` | Usuarios que pueden ingresar al panel |
+| `/admin/equipo` | Usuarios que pueden ingresar al panel y su rol |
 | `/admin/perfil` | Perfil del administrador |

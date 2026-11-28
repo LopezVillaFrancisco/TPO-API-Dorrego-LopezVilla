@@ -49,6 +49,7 @@ La búsqueda (`GET /api/products?search=`) toma el texto literal: `%` y `_` no f
 | `email` | Formato válido y único. |
 | `username` | Opcional, único, de 3 a 30 caracteres: minúsculas, números, punto o guion bajo. |
 | `password` | Mínimo 6 caracteres, también al recuperarla. |
+| `role` | `dueno`, `encargado` o `atencion`. Ver [roles.md](roles.md). |
 
 El registro público (`POST /api/auth/registration`) solo funciona mientras no exista ningún administrador.
 

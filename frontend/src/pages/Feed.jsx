@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronsLeftRight, ChevronUp, Keyboard, MessageCircle, MousePointer2, Plus, RotateCw } from 'lucide-react';
 import { businessApi, categoriesApi, productsApi } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { can } from '../utils/permissions';
 import FeedStage from '../components/feed/FeedStage';
 import ProductSlide from '../components/feed/ProductSlide';
 import FeedHeader from '../components/feed/FeedHeader';
@@ -24,7 +25,8 @@ const readSavedState = () => {
 };
 
 export default function Feed() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const canEdit = can(user, 'menu.edit');
   const [saved] = useState(readSavedState);
   const [data, setData] = useState({ categories: [], products: [], business: null });
   const [status, setStatus] = useState('loading');
@@ -160,25 +162,27 @@ export default function Feed() {
         total={meta.total}
         categoryName={meta.column.name}
         adminView={adminView}
-        onEdit={openEditor}
+        onEdit={canEdit ? openEditor : null}
         onToggleAvailable={toggleAvailable}
         onContact={openContact}
         onPrev={goPrev}
         onNext={goNext}
       />
     ),
-    [adminView, openEditor, toggleAvailable, openContact, goPrev, goNext]
+    [adminView, canEdit, openEditor, toggleAvailable, openContact, goPrev, goNext]
   );
 
   const renderEmpty = useCallback((column) => (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
       <p className="text-sm font-medium text-accent">{column.name}</p>
       <p className="font-serif text-2xl text-stone-300">Esta categoría todavía no tiene productos</p>
-      <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, product: null, categoryId: column.id })}>
-        <Plus size={16} /> Agregar producto
-      </button>
+      {canEdit && (
+        <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, product: null, categoryId: column.id })}>
+          <Plus size={16} /> Agregar producto
+        </button>
+      )}
     </div>
-  ), []);
+  ), [canEdit]);
 
   return (
     <div className="fixed inset-0 flex justify-center bg-black">
@@ -228,7 +232,7 @@ export default function Feed() {
           onOpenInfo={() => setSheet('info')}
           onOpenMenu={() => setSheet('menu')}
           onOpenSearch={() => setSheet('search')}
-          onNewProduct={openNewProduct}
+          onNewProduct={canEdit ? openNewProduct : null}
           isAuthenticated={isAuthenticated}
           adminView={adminView}
           onToggleAdmin={() => setAdminView(!adminView)}
@@ -299,7 +303,7 @@ export default function Feed() {
           setSheet(null);
         }}
         adminView={adminView}
-        onNewProduct={openNewProduct}
+        onNewProduct={canEdit ? openNewProduct : null}
       />
       <ProductEditor
         open={editor.open}

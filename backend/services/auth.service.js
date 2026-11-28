@@ -56,7 +56,16 @@ const toPublicUser = (user) => {
   return publicUser;
 };
 
-const createAdmin = async ({ firstName, lastName, email, username, phone, password }) => {
+const validateRole = (role) => {
+  if (!AdminUser.ROLES.includes(role)) {
+    throw httpError(400, `role debe ser uno de: ${AdminUser.ROLES.join(', ')}`);
+  }
+};
+
+const countOwners = () => AdminUser.count({ where: { role: 'dueno' } });
+
+const createAdmin = async ({ firstName, lastName, email, username, phone, password, role = 'encargado' }) => {
+  validateRole(role);
   if (!firstName || !lastName || !email || !password) {
     throw httpError(400, 'firstName, lastName, email y password son obligatorios');
   }
@@ -77,6 +86,7 @@ const createAdmin = async ({ firstName, lastName, email, username, phone, passwo
       email,
       username: cleanUsername,
       phone,
+      role,
       password: bcrypt.hashSync(password, BCRYPT_ROUNDS),
     })
   );
@@ -88,7 +98,8 @@ const register = async (data) => {
   if (!(await isRegistrationOpen())) {
     throw httpError(403, 'El registro está cerrado: el comercio ya tiene administradores');
   }
-  const user = await createAdmin(data);
+  // El primer usuario es el Dueño del panel
+  const user = await createAdmin({ ...data, role: 'dueno' });
   return { token: generateToken(user), user: toPublicUser(user) };
 };
 
@@ -107,7 +118,33 @@ const deleteAdmin = async (id, requesterId) => {
   if (!user) {
     throw httpError(404, 'Usuario no encontrado');
   }
+  if (user.role === 'dueno' && (await countOwners()) <= 1) {
+    throw httpError(400, 'No se puede eliminar al único Dueño del panel');
+  }
   await user.destroy();
+};
+
+// Edición desde Equipo: además de los datos personales permite cambiar el rol
+const updateStaffMember = async (id, data, requesterId) => {
+  const { role, ...profile } = data;
+  if (role !== undefined) {
+    validateRole(role);
+    const user = await AdminUser.findByPk(id);
+    if (!user) {
+      throw httpError(404, 'Usuario no encontrado');
+    }
+    if (role !== user.role) {
+      if (Number(id) === Number(requesterId)) {
+        throw httpError(400, 'No podés cambiar tu propio rol');
+      }
+      if (user.role === 'dueno' && (await countOwners()) <= 1) {
+        throw httpError(400, 'Tiene que quedar al menos un Dueño en el panel');
+      }
+      user.role = role;
+      await user.save();
+    }
+  }
+  return updateProfile(id, profile);
 };
 
 const login = async ({ identifier, email, password }) => {
@@ -201,4 +238,4 @@ const updateProfile = async (id, { firstName, lastName, email, username, phone, 
   return toPublicUser(user);
 };
 
-module.exports = { isRegistrationOpen, register, listAdmins, addAdmin, deleteAdmin, login, recoverPassword, resetPassword, getProfile, updateProfile };
+module.exports = { isRegistrationOpen, register, listAdmins, addAdmin, deleteAdmin, updateStaffMember, login, recoverPassword, resetPassword, getProfile, updateProfile };

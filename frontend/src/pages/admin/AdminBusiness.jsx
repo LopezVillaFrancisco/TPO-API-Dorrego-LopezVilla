@@ -6,6 +6,8 @@ import FormField, { Alert } from '../../components/FormField';
 import { BusinessInfoContent } from '../../components/feed/InfoSheet';
 import Spinner from '../../components/Spinner';
 import { isValidUrl } from '../../utils/format';
+import { useAuth } from '../../context/AuthContext';
+import { can } from '../../utils/permissions';
 
 const SOCIAL_FIELDS = [
   { key: 'instagram', label: 'Instagram' },
@@ -37,6 +39,8 @@ const previewOf = (form) => ({
 
 export default function AdminBusiness() {
   const { setBusiness } = useOutletContext();
+  const { user } = useAuth();
+  const readOnly = !can(user, 'business.edit');
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -97,9 +101,12 @@ export default function AdminBusiness() {
 
   return (
     <>
-      <PageHeader title="Comercio" description="Esto es lo que ve el cliente al tocar el logo en el menú." />
+      <PageHeader
+        title="Comercio"
+        description={readOnly ? 'Esto es lo que ve el cliente al tocar el logo en el menú. Solo el Dueño puede editarlo.' : 'Esto es lo que ve el cliente al tocar el logo en el menú.'}
+      />
       <form onSubmit={submit} className="grid gap-5 xl:grid-cols-[1fr_340px] xl:items-start" noValidate>
-        <div className="card space-y-4 p-5">
+        <fieldset disabled={readOnly} className="card min-w-0 space-y-4 p-5">
           {message.text && <Alert type={message.type}>{message.text}</Alert>}
           <FormField label="Nombre" error={errors.name}>
             <input className={`field ${errors.name ? 'field-error' : ''}`} {...bind('name')} />
@@ -136,10 +143,12 @@ export default function AdminBusiness() {
               ))}
             </div>
           </div>
-          <div className="flex justify-end">
-            <button className="btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
-          </div>
-        </div>
+          {!readOnly && (
+            <div className="flex justify-end">
+              <button className="btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
+            </div>
+          )}
+        </fieldset>
 
         <aside className="mx-auto w-full max-w-sm xl:sticky xl:top-10 xl:max-w-none">
           <div className="mb-2 flex items-baseline justify-between">

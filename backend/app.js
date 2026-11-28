@@ -59,6 +59,9 @@ const NEW_COLUMNS = {
   products: {
     tags: { type: DataTypes.ARRAY(DataTypes.STRING(30)), allowNull: false, defaultValue: [] },
   },
+  admin_users: {
+    role: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'encargado' },
+  },
   contact_messages: {
     replied_at: { type: DataTypes.DATE, allowNull: true },
     replied_by: { type: DataTypes.STRING(150), allowNull: true },
@@ -77,11 +80,25 @@ const addMissingColumns = async () => {
   }
 };
 
+// Siempre tiene que haber un Dueño: si no hay ninguno (por ejemplo, al agregar la columna role
+// a una base existente), el usuario más antiguo pasa a serlo y el resto queda como Encargado.
+const ensureOwner = async () => {
+  const AdminUser = sequelize.models.AdminUser;
+  if (await AdminUser.count({ where: { role: 'dueno' } })) return;
+  const oldest = await AdminUser.findOne({ order: [['date', 'ASC'], ['id', 'ASC']] });
+  if (oldest) {
+    oldest.role = 'dueno';
+    await oldest.save();
+    console.log(`${oldest.email} quedó como Dueño del panel`);
+  }
+};
+
 const connectDatabase = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
     await addMissingColumns();
+    await ensureOwner();
     console.log('Conexión a la base de datos establecida');
   } catch (error) {
     console.error('No se pudo conectar a la base de datos:', error.message);

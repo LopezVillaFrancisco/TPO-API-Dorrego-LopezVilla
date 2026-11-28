@@ -7,6 +7,8 @@ import Spinner from '../../components/Spinner';
 import { Alert } from '../../components/FormField';
 import { formatDate, formatDay } from '../../utils/format';
 import { thumbUrl } from '../../utils/photo';
+import { useAuth } from '../../context/AuthContext';
+import { can } from '../../utils/permissions';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_ROWS = 5;
@@ -21,9 +23,9 @@ const expiresLabel = (date) => {
 };
 
 // Arma las listas de pendientes a partir de productos y consultas
-const buildSections = (products, messages) => {
+const buildSections = (products, messages, canEdit) => {
   const now = Date.now();
-  const productLink = (product) => `/admin/productos?edit=${product.id}`;
+  const productLink = (product) => (canEdit ? `/admin/productos?edit=${product.id}` : '/admin/productos?estado=agotados');
   const thumb = (product) => product.images?.[0]?.url || null;
 
   const unanswered = messages.filter((message) => message.status !== 'respondido');
@@ -37,7 +39,7 @@ const buildSections = (products, messages) => {
     .sort((a, b) => new Date(a.badgeExpiresAt) - new Date(b.badgeExpiresAt));
   const incomplete = products.filter((product) => !product.images?.length || !product.description?.trim());
 
-  return [
+  const sections = [
     {
       key: 'consultas',
       title: 'Consultas sin responder',
@@ -94,6 +96,8 @@ const buildSections = (products, messages) => {
       })),
     },
   ];
+  // Atención no puede resolver promos ni productos incompletos: no se los mostramos
+  return canEdit ? sections : sections.filter((section) => ['consultas', 'agotados'].includes(section.key));
 };
 
 function Row({ item }) {
@@ -153,6 +157,8 @@ function Section({ section }) {
 
 export default function AdminToday() {
   const { summary } = useOutletContext();
+  const { user } = useAuth();
+  const canEdit = can(user, 'menu.edit');
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -167,7 +173,7 @@ export default function AdminToday() {
     };
   }, [summary.pending, summary.unanswered]);
 
-  const sections = useMemo(() => (data ? buildSections(data.products, data.messages) : []), [data]);
+  const sections = useMemo(() => (data ? buildSections(data.products, data.messages, canEdit) : []), [data, canEdit]);
   const total = sections.reduce((sum, section) => sum + section.items.length, 0);
 
   if (error && !data) return <Alert>{error}</Alert>;

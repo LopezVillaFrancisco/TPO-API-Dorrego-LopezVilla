@@ -85,7 +85,7 @@ export default function FeedHeader({
           <button type="button" onClick={onOpenSearch} className="icon-btn size-9" aria-label="Buscar productos">
             <Search size={16} />
           </button>
-          {adminView && (
+          {adminView && onNewProduct && (
             <button type="button" onClick={onNewProduct} className="btn-primary whitespace-nowrap px-2.5 py-2 xl:px-4" aria-label="Nuevo producto" title="Nuevo producto">
               <Plus size={16} /> <span className="hidden xl:inline">Nuevo producto</span>
             </button>

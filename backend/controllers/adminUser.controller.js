@@ -10,7 +10,7 @@ const createAdminUser = asyncHandler(async (req) => ({
 }));
 
 const updateAdminUser = asyncHandler(async (req) => ({
-  data: await AuthService.updateProfile(req.params.id, req.body),
+  data: await AuthService.updateStaffMember(req.params.id, req.body, req.user.id),
   message: 'Usuario actualizado correctamente',
 }));
 

@@ -11,9 +11,11 @@ import { recentlyPanned } from './gesture';
 function AdminActions({ product, onEdit, onToggleAvailable }) {
   return (
     <>
-      <button type="button" onClick={() => onEdit(product)} className="flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-xs font-semibold text-stone-900">
-        <Pencil size={13} /> Editar
-      </button>
+      {onEdit && (
+        <button type="button" onClick={() => onEdit(product)} className="flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-xs font-semibold text-stone-900">
+          <Pencil size={13} /> Editar
+        </button>
+      )}
       <button
         type="button"
         onClick={() => onToggleAvailable(product)}

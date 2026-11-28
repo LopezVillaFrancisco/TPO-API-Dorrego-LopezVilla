@@ -33,10 +33,10 @@ export default function App() {
         <Route index element={<Navigate to="hoy" replace />} />
         <Route path="hoy" element={<AdminToday />} />
         <Route path="productos" element={<AdminProducts />} />
-        <Route path="categorias" element={<AdminCategories />} />
+        <Route path="categorias" element={<ProtectedRoute permission="menu.edit"><AdminCategories /></ProtectedRoute>} />
         <Route path="mensajes" element={<AdminMessages />} />
-        <Route path="comercio" element={<AdminBusiness />} />
-        <Route path="equipo" element={<AdminStaff />} />
+        <Route path="comercio" element={<ProtectedRoute permission="business.view"><AdminBusiness /></ProtectedRoute>} />
+        <Route path="equipo" element={<ProtectedRoute permission="staff.view"><AdminStaff /></ProtectedRoute>} />
         <Route path="perfil" element={<AdminProfile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

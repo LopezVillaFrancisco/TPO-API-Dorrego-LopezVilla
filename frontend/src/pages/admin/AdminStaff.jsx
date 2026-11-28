@@ -8,12 +8,13 @@ import FormField, { Alert } from '../../components/FormField';
 import Spinner from '../../components/Spinner';
 import { EMAIL_REGEX, USERNAME_HINT, USERNAME_REGEX, formatDay } from '../../utils/format';
 import PasswordInput from '../../components/PasswordInput';
+import { ROLES, can, roleLabel } from '../../utils/permissions';
 
-const EMPTY_FORM = { firstName: '', lastName: '', username: '', email: '', phone: '', password: '', confirm: '' };
+const EMPTY_FORM = { firstName: '', lastName: '', username: '', email: '', phone: '', role: 'atencion', password: '', confirm: '' };
 
 const toForm = (member) =>
   member
-    ? { ...EMPTY_FORM, firstName: member.firstName, lastName: member.lastName, username: member.username || '', email: member.email, phone: member.phone || '' }
+    ? { ...EMPTY_FORM, firstName: member.firstName, lastName: member.lastName, username: member.username || '', email: member.email, phone: member.phone || '', role: member.role }
     : EMPTY_FORM;
 
 const initialsOf = (member) => `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase();
@@ -30,7 +31,53 @@ function validate(form, editing) {
   return errors;
 }
 
-function MemberModal({ open, member, onClose, onSaved }) {
+const ROLE_STYLES = {
+  dueno: 'bg-accent/15 text-accent',
+  encargado: 'bg-sky-400/15 text-sky-300',
+  atencion: 'bg-stone-700/60 text-stone-200',
+};
+
+function RoleTag({ role }) {
+  return <span className={`shrink-0 rounded-sm px-1.5 py-0.5 text-xs font-medium ${ROLE_STYLES[role] || ROLE_STYLES.atencion}`}>{roleLabel(role)}</span>;
+}
+
+// Un rol por usuario, elegido con tarjetas que explican qué puede hacer cada uno
+function RolePicker({ value, onChange, disabled, hint }) {
+  return (
+    <fieldset disabled={disabled}>
+      <legend className="label">Rol</legend>
+      <div className="grid gap-2" role="radiogroup" aria-label="Rol">
+        {ROLES.map((role) => {
+          const selected = role.value === value;
+          return (
+            <label
+              key={role.value}
+              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition ${
+                selected ? 'border-accent bg-accent/10' : 'border-stone-700 hover:border-stone-500'
+              } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value={role.value}
+                checked={selected}
+                onChange={() => onChange(role.value)}
+                className="mt-0.5 size-4 accent-[#f2c14e]"
+              />
+              <span>
+                <span className="block text-sm font-medium text-stone-100">{role.label}</span>
+                <span className="block text-xs text-stone-400">{role.description}</span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      {hint && <p className="mt-1.5 text-xs text-stone-500">{hint}</p>}
+    </fieldset>
+  );
+}
+
+function MemberModal({ open, member, isMe, onClose, onSaved }) {
   const editing = Boolean(member);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
@@ -67,6 +114,7 @@ function MemberModal({ open, member, onClose, onSaved }) {
         username: form.username.trim().toLowerCase() || null,
         phone: form.phone.trim() || null,
       };
+      if (!isMe) body.role = form.role;
       if (form.password) body.password = form.password;
       const saved = editing ? await staffApi.update(member.id, body) : await staffApi.create(body);
       onSaved(saved, editing);
@@ -112,6 +160,12 @@ function MemberModal({ open, member, onClose, onSaved }) {
             <input type="tel" {...bind('phone')} />
           </FormField>
         </div>
+        <RolePicker
+          value={form.role}
+          onChange={(role) => setForm({ ...form, role })}
+          disabled={isMe}
+          hint={isMe ? 'No podés cambiar tu propio rol. Pedíselo a otro Dueño.' : null}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={editing ? 'Contraseña nueva' : 'Contraseña'} error={errors.password}>
             <PasswordInput autoComplete="new-password" {...bind('password')} />
@@ -130,7 +184,7 @@ function MemberModal({ open, member, onClose, onSaved }) {
   );
 }
 
-function MemberRow({ member, isMe, onEdit, onDelete }) {
+function MemberRow({ member, isMe, canEdit, onEdit, onDelete }) {
   return (
     <li className="flex items-center gap-3 px-4 py-3 sm:gap-4">
       <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent/15 font-serif text-lg text-accent">
@@ -140,6 +194,7 @@ function MemberRow({ member, isMe, onEdit, onDelete }) {
         <p className="flex items-baseline gap-2">
           <span className="truncate font-serif text-lg leading-tight">{member.firstName} {member.lastName}</span>
           {isMe && <span className="shrink-0 text-sm text-stone-500">vos</span>}
+          <RoleTag role={member.role} />
         </p>
         <p className="truncate text-sm text-stone-400">
           {member.username && <span className="text-stone-300">@{member.username} · </span>}
@@ -150,6 +205,8 @@ function MemberRow({ member, isMe, onEdit, onDelete }) {
         {member.phone && <p className="text-stone-300">{member.phone}</p>}
         <p className="text-stone-500">Desde el {formatDay(member.date)}</p>
       </div>
+      {canEdit && (
+      <>
       <button type="button" className="icon-btn shrink-0" onClick={() => onEdit(member)} aria-label={`Editar a ${member.firstName}`} title="Editar">
         <Pencil size={16} />
       </button>
@@ -163,12 +220,15 @@ function MemberRow({ member, isMe, onEdit, onDelete }) {
       >
         <Trash2 size={16} />
       </button>
+      </>
+      )}
     </li>
   );
 }
 
 export default function AdminStaff() {
   const { user, setUser } = useAuth();
+  const canEdit = can(user, 'staff.edit');
   const [members, setMembers] = useState([]);
   const [status, setStatus] = useState('loading');
   const [loadError, setLoadError] = useState('');
@@ -222,9 +282,13 @@ export default function AdminStaff() {
     <>
       <PageHeader
         title="Equipo"
-        description="Personas que pueden ingresar al panel. Todas tienen los mismos permisos."
+        description={
+          canEdit
+            ? 'Personas que pueden ingresar al panel y qué puede hacer cada una según su rol.'
+            : 'Personas que pueden ingresar al panel. Solo el Dueño puede agregar usuarios o cambiar roles.'
+        }
         action={
-          <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, member: null })}>
+          canEdit && <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, member: null })}>
             <Plus size={16} /> Nuevo usuario
           </button>
         }
@@ -241,6 +305,7 @@ export default function AdminStaff() {
               key={member.id}
               member={member}
               isMe={member.id === user?.id}
+              canEdit={canEdit}
               onEdit={(selected) => setEditor({ open: true, member: selected })}
               onDelete={setToDelete}
             />
@@ -251,6 +316,7 @@ export default function AdminStaff() {
       <MemberModal
         open={editor.open}
         member={editor.member}
+        isMe={Boolean(editor.member) && editor.member.id === user?.id}
         onClose={() => setEditor({ open: false, member: null })}
         onSaved={handleSaved}
       />
