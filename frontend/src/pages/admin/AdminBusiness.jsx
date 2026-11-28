@@ -141,13 +141,13 @@ export default function AdminBusiness() {
           </div>
         </div>
 
-        <aside className="xl:sticky xl:top-10">
+        <aside className="mx-auto w-full max-w-sm xl:sticky xl:top-10 xl:max-w-none">
           <div className="mb-2 flex items-baseline justify-between">
             <p className="label mb-0">Vista previa</p>
             <span className="text-xs text-stone-500">Se actualiza mientras escribís</span>
           </div>
           <div className="overflow-hidden rounded-[28px] border border-stone-700 bg-black p-2 shadow-xl shadow-black/40">
-            <div className="max-h-[70dvh] overflow-y-auto rounded-[22px] bg-ink px-5 pt-3 pb-6 no-scrollbar" inert>
+            <div className="rounded-[22px] bg-ink px-5 pt-3 pb-6" inert>
               <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-stone-700" />
               <BusinessInfoContent business={previewOf(form)} onContact={() => {}} />
             </div>
