@@ -24,7 +24,7 @@ export default function MenuSheet({ open, onClose, columns, activeIndex, onSelec
           </li>
         ))}
       </ul>
-      {adminView && (
+      {adminView && onNewProduct && (
         <div className="mt-6 grid grid-cols-2 gap-2">
           <button type="button" className="btn-primary" onClick={onNewProduct}>
             <Plus size={16} /> Nuevo producto

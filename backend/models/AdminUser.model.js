@@ -1,6 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../databases/database');
 
+const ROLES = ['dueno', 'encargado', 'atencion'];
+
 const AdminUser = sequelize.define(
   'AdminUser',
   {
@@ -10,6 +12,7 @@ const AdminUser = sequelize.define(
     email: { type: DataTypes.STRING(150), allowNull: false, unique: true, validate: { isEmail: true } },
     username: { type: DataTypes.STRING(30), allowNull: true, unique: true },
     phone: { type: DataTypes.STRING(30), allowNull: true },
+    role: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'encargado', validate: { isIn: [ROLES] } },
     password: { type: DataTypes.STRING, allowNull: false },
     resetPasswordToken: { type: DataTypes.STRING, allowNull: true },
     resetPasswordExpires: { type: DataTypes.DATE, allowNull: true },
@@ -20,5 +23,7 @@ const AdminUser = sequelize.define(
     timestamps: false,
   }
 );
+
+AdminUser.ROLES = ROLES;
 
 module.exports = AdminUser;

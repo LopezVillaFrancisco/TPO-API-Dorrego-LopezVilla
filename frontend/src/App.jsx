@@ -7,6 +7,7 @@ import RecoverPassword from './pages/auth/RecoverPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminProducts from './pages/admin/AdminProducts';
+import AdminToday from './pages/admin/AdminToday';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminMessages from './pages/admin/AdminMessages';
 import AdminBusiness from './pages/admin/AdminBusiness';
@@ -29,12 +30,13 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="productos" replace />} />
+        <Route index element={<Navigate to="hoy" replace />} />
+        <Route path="hoy" element={<AdminToday />} />
         <Route path="productos" element={<AdminProducts />} />
-        <Route path="categorias" element={<AdminCategories />} />
+        <Route path="categorias" element={<ProtectedRoute permission="menu.edit"><AdminCategories /></ProtectedRoute>} />
         <Route path="mensajes" element={<AdminMessages />} />
-        <Route path="comercio" element={<AdminBusiness />} />
-        <Route path="equipo" element={<AdminStaff />} />
+        <Route path="comercio" element={<ProtectedRoute permission="business.view"><AdminBusiness /></ProtectedRoute>} />
+        <Route path="equipo" element={<ProtectedRoute permission="staff.view"><AdminStaff /></ProtectedRoute>} />
         <Route path="perfil" element={<AdminProfile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

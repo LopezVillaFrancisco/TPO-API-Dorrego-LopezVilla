@@ -3,9 +3,11 @@ import { useOutletContext } from 'react-router-dom';
 import { businessApi } from '../../api';
 import PageHeader from '../../components/PageHeader';
 import FormField, { Alert } from '../../components/FormField';
-import BusinessLogo from '../../components/BusinessLogo';
+import { BusinessInfoContent } from '../../components/feed/InfoSheet';
 import Spinner from '../../components/Spinner';
 import { isValidUrl } from '../../utils/format';
+import { useAuth } from '../../context/AuthContext';
+import { can } from '../../utils/permissions';
 
 const SOCIAL_FIELDS = [
   { key: 'instagram', label: 'Instagram' },
@@ -25,8 +27,20 @@ const toForm = (info) => ({
   socialLinks: { ...(info.socialLinks || {}) },
 });
 
+const previewOf = (form) => ({
+  name: form.name.trim() || 'Mi comercio',
+  description: form.description.trim(),
+  address: form.address.trim(),
+  phone: form.phone.trim(),
+  hours: form.hours.trim(),
+  logoUrl: isValidUrl(form.logoUrl.trim()) ? form.logoUrl.trim() : null,
+  socialLinks: Object.fromEntries(Object.entries(form.socialLinks).map(([key, value]) => [key, (value || '').trim()])),
+});
+
 export default function AdminBusiness() {
   const { setBusiness } = useOutletContext();
+  const { user } = useAuth();
+  const readOnly = !can(user, 'business.edit');
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -87,9 +101,12 @@ export default function AdminBusiness() {
 
   return (
     <>
-      <PageHeader title="Comercio" description="Esto es lo que ve el cliente al tocar el logo en el menú." />
-      <form onSubmit={submit} className="grid gap-5 lg:grid-cols-[1fr_320px]" noValidate>
-        <div className="card space-y-4 p-5">
+      <PageHeader
+        title="Comercio"
+        description={readOnly ? 'Esto es lo que ve el cliente al tocar el logo en el menú. Solo el Dueño puede editarlo.' : 'Esto es lo que ve el cliente al tocar el logo en el menú.'}
+      />
+      <form onSubmit={submit} className="grid gap-5 xl:grid-cols-[1fr_340px] xl:items-start" noValidate>
+        <fieldset disabled={readOnly} className="card min-w-0 space-y-4 p-5">
           {message.text && <Alert type={message.type}>{message.text}</Alert>}
           <FormField label="Nombre" error={errors.name}>
             <input className={`field ${errors.name ? 'field-error' : ''}`} {...bind('name')} />
@@ -126,19 +143,25 @@ export default function AdminBusiness() {
               ))}
             </div>
           </div>
-          <div className="flex justify-end">
-            <button className="btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
-          </div>
-        </div>
+          {!readOnly && (
+            <div className="flex justify-end">
+              <button className="btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
+            </div>
+          )}
+        </fieldset>
 
-        <aside className="card h-fit p-5 text-center">
-          <p className="label">Vista previa</p>
-          <div className="mt-3 flex flex-col items-center">
-            <BusinessLogo business={{ name: form.name, logoUrl: isValidUrl(form.logoUrl.trim()) ? form.logoUrl.trim() : null }} size="lg" />
-            <p className="mt-3 font-serif text-2xl">{form.name || 'Mi comercio'}</p>
-            {form.description && <p className="mt-2 text-sm text-stone-400">{form.description}</p>}
-            {form.hours && <p className="mt-3 text-xs text-stone-500">{form.hours}</p>}
+        <aside className="mx-auto w-full max-w-sm xl:sticky xl:top-10 xl:max-w-none">
+          <div className="mb-2 flex items-baseline justify-between">
+            <p className="label mb-0">Vista previa</p>
+            <span className="text-xs text-stone-500">Se actualiza mientras escribís</span>
           </div>
+          <div className="overflow-hidden rounded-[28px] border border-stone-700 bg-black p-2 shadow-xl shadow-black/40">
+            <div className="rounded-[22px] bg-ink px-5 pt-3 pb-6" inert>
+              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-stone-700" />
+              <BusinessInfoContent business={previewOf(form)} onContact={() => {}} />
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-stone-500">Así se ve la ficha cuando el cliente toca el logo en el menú. Los links con formato inválido no se muestran.</p>
         </aside>
       </form>
     </>

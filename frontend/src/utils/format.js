@@ -9,7 +9,7 @@ export const formatPrice = (value) => currency.format(Number(value || 0));
 export const pad = (value) => String(value).padStart(2, '0');
 
 export const BADGE_OPTIONS = [
-  { value: 'ninguno', label: 'Sin chip' },
+  { value: 'ninguno', label: 'Sin destacar' },
   { value: 'descuento', label: 'Descuento' },
   { value: 'nuevo', label: 'Nuevo' },
   { value: 'mas_vendido', label: 'Más vendido' },

@@ -36,9 +36,20 @@ export const businessApi = {
 
 export const messagesApi = {
   create: (body) => data(request('/contact-messages', { method: 'POST', body })),
-  list: (status) => data(request('/contact-messages', { query: { status } })),
+  list: ({ status, search, archived } = {}) =>
+    data(request('/contact-messages', { query: { status, search, archived: archived ? 'true' : undefined } })),
+  summary: () => data(request('/contact-messages/summary')),
+  setArchived: (id, archived) => data(request(`/contact-messages/${id}`, { method: 'PATCH', body: { archived } })),
   updateStatus: (id, status) => data(request(`/contact-messages/${id}`, { method: 'PATCH', body: { status } })),
+  updateNote: (id, internalNote) => data(request(`/contact-messages/${id}`, { method: 'PATCH', body: { internalNote } })),
   remove: (id) => request(`/contact-messages/${id}`, { method: 'DELETE' }),
+};
+
+export const quickRepliesApi = {
+  list: () => data(request('/quick-replies')),
+  create: (body) => data(request('/quick-replies', { method: 'POST', body })),
+  update: (id, body) => data(request(`/quick-replies/${id}`, { method: 'PATCH', body })),
+  remove: (id) => request(`/quick-replies/${id}`, { method: 'DELETE' }),
 };
 
 export const staffApi = {

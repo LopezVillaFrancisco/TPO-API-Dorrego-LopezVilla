@@ -28,12 +28,22 @@ if (fs.existsSync(envPath)) {
   console.warn('[config] No se encontró el archivo .env, se usan valores por defecto.');
 }
 
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// En producción no se arranca con valores inseguros por defecto
+if (NODE_ENV === 'production') {
+  ['JWT_SECRET', 'CORS_ORIGIN'].forEach((key) => {
+    if (!process.env[key]) throw new Error(`[config] Falta la variable ${key}, obligatoria en producción`);
+  });
+}
+
 module.exports = {
   PORT: process.env.PORT || 4000,
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  NODE_ENV,
+  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
 
   JWT_SECRET: process.env.JWT_SECRET || 'secreto_de_desarrollo',
+  TRUST_PROXY: process.env.TRUST_PROXY === 'true',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
   RESET_TOKEN_EXPIRES_MINUTES: Number(process.env.RESET_TOKEN_EXPIRES_MINUTES || 60),
 

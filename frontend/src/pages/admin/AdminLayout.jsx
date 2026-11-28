@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Eye, FolderTree, Inbox, LogOut, Store, UserRound, Users, UtensilsCrossed } from 'lucide-react';
+import { Eye, FolderTree, Inbox, ListChecks, LogOut, Store, UserRound, Users, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { businessApi, messagesApi } from '../../api';
 import BusinessLogo from '../../components/BusinessLogo';
+import { can, roleLabel } from '../../utils/permissions';
 
 const LINKS = [
+  { to: 'hoy', label: 'Hoy', icon: ListChecks },
   { to: 'productos', label: 'Productos', icon: UtensilsCrossed },
-  { to: 'categorias', label: 'Categorías', icon: FolderTree },
+  { to: 'categorias', label: 'Categorías', icon: FolderTree, permission: 'menu.edit' },
   { to: 'mensajes', label: 'Mensajes', icon: Inbox },
-  { to: 'comercio', label: 'Comercio', icon: Store },
-  { to: 'equipo', label: 'Equipo', icon: Users },
+  { to: 'comercio', label: 'Comercio', icon: Store, permission: 'business.view' },
+  { to: 'equipo', label: 'Equipo', icon: Users, permission: 'staff.view' },
   { to: 'perfil', label: 'Perfil', icon: UserRound },
 ];
+
+const POLL_MS = 60 * 1000;
 
 function PendingCount({ value }) {
   if (value <= 0) return null;
@@ -23,18 +27,43 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
-  const [pending, setPending] = useState(0);
+  const [summary, setSummary] = useState({ pending: 0, unanswered: 0 });
+  const pending = summary.pending;
+  const links = LINKS.filter((link) => !link.permission || can(user, link.permission));
 
-  const refreshPending = () =>
-    messagesApi
-      .list('pendiente')
-      .then((messages) => setPending(messages.length))
-      .catch(() => null);
+  const refreshPending = useCallback(
+    () =>
+      messagesApi
+        .summary()
+        .then(setSummary)
+        .catch(() => null),
+    []
+  );
 
   useEffect(() => {
     businessApi.get().then(setBusiness).catch(() => null);
-    refreshPending();
   }, []);
+
+  // Las consultas nuevas aparecen sin recargar: cada minuto con la pestaña visible y al volver a ella
+  useEffect(() => {
+    refreshPending();
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') refreshPending();
+    };
+    const timer = setInterval(refreshIfVisible, POLL_MS);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    window.addEventListener('focus', refreshIfVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+      window.removeEventListener('focus', refreshIfVisible);
+    };
+  }, [refreshPending]);
+
+  useEffect(() => {
+    const name = business?.name || 'Mi comercio';
+    document.title = pending > 0 ? `(${pending}) Panel · ${name}` : `Panel · ${name}`;
+  }, [pending, business]);
 
   const handleLogout = () => {
     logout();
@@ -56,7 +85,7 @@ export default function AdminLayout() {
       <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-r border-stone-800 bg-panel/40 px-5 py-6 lg:flex">
         {brand}
         <nav className="mt-10 flex flex-col">
-          {LINKS.map(({ to, label, icon: Icon }) => (
+          {links.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -74,7 +103,10 @@ export default function AdminLayout() {
         </nav>
         <div className="mt-auto border-t border-stone-800 pt-5 text-sm">
           <p className="truncate text-stone-200">{user?.firstName} {user?.lastName}</p>
-          {user?.username && <p className="truncate text-stone-500">@{user.username}</p>}
+          <p className="truncate text-stone-500">
+            {user?.role && roleLabel(user.role)}
+            {user?.username && ` · @${user.username}`}
+          </p>
           <div className="mt-4 flex flex-col items-start gap-2.5">
             <Link to="/" className="flex items-center gap-2 text-stone-300 hover:text-accent">
               <Eye size={15} /> Ver el menú
@@ -101,7 +133,7 @@ export default function AdminLayout() {
             </div>
           </div>
           <nav className="no-scrollbar mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3">
-            {LINKS.map(({ to, label, icon: Icon }) => (
+            {links.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -119,7 +151,7 @@ export default function AdminLayout() {
           </nav>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-6 lg:px-10 lg:py-10">
-          <Outlet context={{ business, setBusiness, refreshPending }} />
+          <Outlet context={{ business, setBusiness, refreshPending, summary }} />
         </main>
       </div>
     </div>

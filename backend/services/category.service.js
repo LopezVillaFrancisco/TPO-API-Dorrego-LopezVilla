@@ -1,24 +1,16 @@
 const Category = require('../models/Category.model');
 const Product = require('../models/Product.model');
 
-const httpError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
+const { httpError, saveUnique: saveUniqueField } = require('../utils/http');
 
-const saveUnique = async (operation) => {
-  try {
-    return await operation();
-  } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      throw httpError(409, 'Ya existe una categoría con ese nombre');
-    }
-    throw error;
-  }
-};
+const saveUnique = (operation) => saveUniqueField(operation, () => 'Ya existe una categoría con ese nombre');
 
 const getCategories = async () => {
   return Category.findAll({ order: [['order', 'ASC'], ['name', 'ASC']] });
 };
 
 const createCategory = async ({ name, order }) => {
+  name = typeof name === 'string' ? name.trim() : name;
   if (!name) {
     throw httpError(400, 'El nombre es obligatorio');
   }
@@ -37,7 +29,10 @@ const updateCategory = async (id, { name, order }) => {
     throw httpError(404, 'Categoría no encontrada');
   }
 
-  if (name !== undefined) category.name = name;
+  if (name !== undefined) {
+    if (!String(name).trim()) throw httpError(400, 'El nombre es obligatorio');
+    category.name = String(name).trim();
+  }
   if (order !== undefined) category.order = order;
 
   await saveUnique(() => category.save());

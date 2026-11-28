@@ -43,12 +43,12 @@ const validate = (form) => {
   if (!form.categoryId) errors.categoryId = 'Elegí una categoría';
   const price = Number(form.price);
   if (form.price === '' || Number.isNaN(price) || price < 0) errors.price = 'Ingresá un precio válido';
-  if (form.discountPrice !== '') {
+  if (form.badgeType === 'descuento') {
     const discount = Number(form.discountPrice);
-    if (Number.isNaN(discount) || discount < 0) errors.discountPrice = 'Precio inválido';
+    if (form.discountPrice === '') errors.discountPrice = 'Ingresá el precio con descuento';
+    else if (Number.isNaN(discount) || discount < 0) errors.discountPrice = 'Precio inválido';
     else if (!errors.price && discount >= price) errors.discountPrice = 'Tiene que ser menor que el precio';
   }
-  if (form.badgeType === 'descuento' && form.discountPrice === '') errors.discountPrice = 'El chip descuento necesita un precio con descuento';
   if (form.order !== '' && !Number.isInteger(Number(form.order))) errors.order = 'Tiene que ser un número entero';
   const badImage = form.images.findIndex((url) => url.trim() && !isValidUrl(url.trim()));
   if (badImage !== -1) errors.images = `La imagen ${badImage + 1} no es una URL válida`;
@@ -60,9 +60,9 @@ const toPayload = (form) => ({
   description: form.description.trim() || null,
   categoryId: Number(form.categoryId),
   price: Number(form.price),
-  discountPrice: form.discountPrice === '' ? null : Number(form.discountPrice),
+  discountPrice: form.badgeType === 'descuento' && form.discountPrice !== '' ? Number(form.discountPrice) : null,
   badgeType: form.badgeType,
-  badgeExpiresAt: endOfDayIso(form.badgeExpiresAt),
+  badgeExpiresAt: form.badgeType === 'ninguno' ? null : endOfDayIso(form.badgeExpiresAt),
   tags: form.tags,
   isAvailable: form.isAvailable,
   order: Number(form.order) || 0,
@@ -198,26 +198,30 @@ export default function ProductEditor({ open, product, categories, defaultCatego
           <FormField label="Precio" error={errors.price}>
             <input className={`field ${errors.price ? 'field-error' : ''}`} type="number" min="0" step="0.01" {...bind('price')} />
           </FormField>
-          <FormField label="Precio con descuento" error={errors.discountPrice} hint="Opcional">
-            <input className={`field ${errors.discountPrice ? 'field-error' : ''}`} type="number" min="0" step="0.01" {...bind('discountPrice')} />
-          </FormField>
-          <FormField label="Orden" error={errors.order} hint="Menor = aparece antes">
-            <input className={`field ${errors.order ? 'field-error' : ''}`} type="number" step="1" {...bind('order')} />
-          </FormField>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Chip destacado">
+          <FormField label="Destacado" hint="Etiqueta que se ve sobre la foto">
             <select className="field" {...bind('badgeType')}>
               {BADGE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
           </FormField>
-          <FormField label="Vence el" hint="Opcional: el chip se muestra hasta el final de ese día">
-            <input className="field" type="date" min={toDateInput(new Date())} disabled={form.badgeType === 'ninguno'} {...bind('badgeExpiresAt')} />
+          <FormField label="Orden" error={errors.order} hint="Menor = aparece antes">
+            <input className={`field ${errors.order ? 'field-error' : ''}`} type="number" step="1" {...bind('order')} />
           </FormField>
         </div>
+
+        {form.badgeType !== 'ninguno' && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {form.badgeType === 'descuento' && (
+              <FormField label="Precio con descuento" error={errors.discountPrice} hint="Lo que paga el cliente mientras dure la promo">
+                <input className={`field ${errors.discountPrice ? 'field-error' : ''}`} type="number" min="0" step="0.01" {...bind('discountPrice')} />
+              </FormField>
+            )}
+            <FormField label="Vence el" hint="Opcional: se muestra hasta el final de ese día">
+              <input className="field" type="date" min={toDateInput(new Date())} {...bind('badgeExpiresAt')} />
+            </FormField>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-800 bg-stone-900/60 px-4 py-3">
           <div className="flex items-center gap-3">

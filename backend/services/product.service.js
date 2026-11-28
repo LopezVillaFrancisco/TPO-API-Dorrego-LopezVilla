@@ -4,7 +4,8 @@ const Product = require('../models/Product.model');
 const ProductImage = require('../models/ProductImage.model');
 const Category = require('../models/Category.model');
 
-const httpError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
+const { httpError, escapeLike } = require('../utils/http');
+const { can } = require('../auth/permissions');
 
 const UPDATABLE_FIELDS = [
   'categoryId',
@@ -84,10 +85,12 @@ const ensureCategoryExists = async (categoryId) => {
 const getProducts = async ({ search, categoryId }) => {
   const where = {};
 
-  if (search) {
+  const term = typeof search === 'string' ? search.trim() : '';
+  if (term) {
+    const pattern = `%${escapeLike(term)}%`;
     where[Op.or] = [
-      { name: { [Op.iLike]: `%${search}%` } },
-      { description: { [Op.iLike]: `%${search}%` } },
+      { name: { [Op.iLike]: pattern } },
+      { description: { [Op.iLike]: pattern } },
     ];
   }
 
@@ -133,8 +136,16 @@ const createProduct = async (data) => {
   return getProductById(productId);
 };
 
-const updateProduct = async (id, data) => {
+const updateProduct = async (id, data, role) => {
   const { images, ...fields } = data;
+
+  // Sin permiso de edición de la carta, solo se puede cambiar la disponibilidad
+  if (role && !can(role, 'menu.edit')) {
+    const extra = Object.keys(data).filter((key) => key !== 'isAvailable');
+    if (extra.length || data.isAvailable === undefined) {
+      throw httpError(403, 'Tu rol solo puede marcar productos como disponibles o agotados');
+    }
+  }
 
   const product = await Product.findByPk(id);
   if (!product) {

@@ -95,7 +95,7 @@ export default function SearchSheet({ open, onClose, categories, onSelect }) {
         </div>
         <div className="no-scrollbar mt-2 flex items-center gap-2 overflow-x-auto">
           <Toggle active={onlyAvailable} onClick={() => setOnlyAvailable(!onlyAvailable)}>Solo disponibles</Toggle>
-          <Toggle active={onlyPromo} onClick={() => setOnlyPromo(!onlyPromo)}>Con chip</Toggle>
+          <Toggle active={onlyPromo} onClick={() => setOnlyPromo(!onlyPromo)}>Destacados</Toggle>
           <input
             type="number"
             min="0"
@@ -151,14 +151,14 @@ export default function SearchSheet({ open, onClose, categories, onSelect }) {
               <span className="min-w-0 flex-1">
                 <span className="block text-xs text-accent">{product.category?.name}</span>
                 <span className="block truncate font-serif text-lg leading-tight">{product.name}</span>
-                <span className="mt-1 flex items-center gap-2">
+                <span className="mt-1 flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold">{formatPrice(pricing.final)}</span>
                   {pricing.hasDiscount && <span className="text-xs text-stone-500 line-through">{formatPrice(pricing.price)}</span>}
                   {!product.isAvailable && <span className="text-xs text-stone-500">No disponible</span>}
+                  <Badge badge={pricing.badge} percent={pricing.percent} size="sm" />
                 </span>
                 <TagChips tags={product.tags} size="sm" className="mt-1.5" />
               </span>
-              <Badge badge={pricing.badge} percent={pricing.percent} size="sm" />
             </button>
           </li>
         ))}

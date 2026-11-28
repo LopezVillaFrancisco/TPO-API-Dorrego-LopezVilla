@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChefHat, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { categoriesApi, productsApi } from '../../api';
 import PageHeader from '../../components/PageHeader';
@@ -11,14 +12,19 @@ import Spinner from '../../components/Spinner';
 import { Alert } from '../../components/FormField';
 import { formatPrice, getPricing } from '../../utils/format';
 import { photoUrl } from '../../utils/photo';
+import { useAuth } from '../../context/AuthContext';
+import { can } from '../../utils/permissions';
 
 export default function AdminProducts() {
+  const { user } = useAuth();
+  const canEdit = can(user, 'menu.edit');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState('loading');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [availability, setAvailability] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [availability, setAvailability] = useState(searchParams.get('estado') === 'agotados' ? 'unavailable' : 'all');
   const [editor, setEditor] = useState({ open: false, product: null });
   const [toDelete, setToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -39,6 +45,17 @@ export default function AdminProducts() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const editId = searchParams.get('edit');
+  useEffect(() => {
+    if (status !== 'ready' || !editId) return;
+    const product = products.find((item) => item.id === Number(editId));
+    if (product && canEdit) setEditor({ open: true, product });
+    setSearchParams((params) => {
+      params.delete('edit');
+      return params;
+    }, { replace: true });
+  }, [status, editId, products, setSearchParams, canEdit]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -84,9 +101,9 @@ export default function AdminProducts() {
     <>
       <PageHeader
         title="Productos"
-        description={`${products.length} productos en el menú`}
+        description={canEdit ? `${products.length} productos en el menú` : `${products.length} productos en el menú. Tu rol puede marcarlos como disponibles o agotados.`}
         action={
-          <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, product: null })} disabled={categories.length === 0}>
+          canEdit && <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, product: null })} disabled={categories.length === 0}>
             <Plus size={16} /> Nuevo producto
           </button>
         }
@@ -151,7 +168,7 @@ export default function AdminProducts() {
                     <Switch checked={product.isAvailable} onChange={(value) => toggleAvailable(product, value)} label="Disponible" />
                     {product.isAvailable ? 'Disponible' : 'Agotado'}
                   </label>
-                  <div className="flex gap-1.5">
+                  <div className={`flex gap-1.5 ${canEdit ? '' : 'hidden'}`}>
                     <button type="button" className="icon-btn" onClick={() => setEditor({ open: true, product })} aria-label={`Editar ${product.name}`}>
                       <Pencil size={15} />
                     </button>

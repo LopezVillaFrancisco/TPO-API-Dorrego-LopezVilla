@@ -1,39 +1,22 @@
 const AuthService = require('../services/auth.service');
+const { asyncHandler } = require('../utils/http');
 
-const getAdminUsers = async (req, res) => {
-  try {
-    const users = await AuthService.listAdmins();
-    return res.status(200).json({ status: 200, data: users });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const getAdminUsers = asyncHandler(async () => ({ data: await AuthService.listAdmins() }));
 
-const createAdminUser = async (req, res) => {
-  try {
-    const user = await AuthService.addAdmin(req.body);
-    return res.status(201).json({ status: 201, data: user, message: 'Usuario creado correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const createAdminUser = asyncHandler(async (req) => ({
+  status: 201,
+  data: await AuthService.addAdmin(req.body),
+  message: 'Usuario creado correctamente',
+}));
 
-const updateAdminUser = async (req, res) => {
-  try {
-    const user = await AuthService.updateProfile(req.params.id, req.body);
-    return res.status(200).json({ status: 200, data: user, message: 'Usuario actualizado correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const updateAdminUser = asyncHandler(async (req) => ({
+  data: await AuthService.updateStaffMember(req.params.id, req.body, req.user.id),
+  message: 'Usuario actualizado correctamente',
+}));
 
-const deleteAdminUser = async (req, res) => {
-  try {
-    await AuthService.deleteAdmin(req.params.id, req.decoded.id);
-    return res.status(200).json({ status: 200, message: 'Usuario eliminado correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const deleteAdminUser = asyncHandler(async (req) => {
+  await AuthService.deleteAdmin(req.params.id, req.decoded.id);
+  return { message: 'Usuario eliminado correctamente' };
+});
 
 module.exports = { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser };

@@ -5,17 +5,17 @@ const crypto = require('crypto');
 const config = require('../config');
 const AdminUser = require('../models/AdminUser.model');
 
-const httpError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
+const { httpError, saveUnique: saveUniqueField } = require('../utils/http');
 
-const saveUnique = async (operation) => {
-  try {
-    return await operation();
-  } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      const field = Object.keys(error.fields || {})[0];
-      throw httpError(409, field === 'username' ? 'El usuario ya está en uso' : 'El email ya está registrado');
-    }
-    throw error;
+const saveUnique = (operation) =>
+  saveUniqueField(operation, (field) => (field === 'username' ? 'El usuario ya está en uso' : 'El email ya está registrado'));
+
+const MIN_PASSWORD = 6;
+const BCRYPT_ROUNDS = 10;
+
+const validatePassword = (password) => {
+  if (String(password).length < MIN_PASSWORD) {
+    throw httpError(400, `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres`);
   }
 };
 
@@ -56,13 +56,20 @@ const toPublicUser = (user) => {
   return publicUser;
 };
 
-const createAdmin = async ({ firstName, lastName, email, username, phone, password }) => {
+const validateRole = (role) => {
+  if (!AdminUser.ROLES.includes(role)) {
+    throw httpError(400, `role debe ser uno de: ${AdminUser.ROLES.join(', ')}`);
+  }
+};
+
+const countOwners = () => AdminUser.count({ where: { role: 'dueno' } });
+
+const createAdmin = async ({ firstName, lastName, email, username, phone, password, role = 'encargado' }) => {
+  validateRole(role);
   if (!firstName || !lastName || !email || !password) {
     throw httpError(400, 'firstName, lastName, email y password son obligatorios');
   }
-  if (String(password).length < 6) {
-    throw httpError(400, 'La contraseña debe tener al menos 6 caracteres');
-  }
+  validatePassword(password);
   validateEmail(email);
   const cleanUsername = normalizeUsername(username);
 
@@ -79,7 +86,8 @@ const createAdmin = async ({ firstName, lastName, email, username, phone, passwo
       email,
       username: cleanUsername,
       phone,
-      password: bcrypt.hashSync(password, 8),
+      role,
+      password: bcrypt.hashSync(password, BCRYPT_ROUNDS),
     })
   );
 
@@ -90,7 +98,8 @@ const register = async (data) => {
   if (!(await isRegistrationOpen())) {
     throw httpError(403, 'El registro está cerrado: el comercio ya tiene administradores');
   }
-  const user = await createAdmin(data);
+  // El primer usuario es el Dueño del panel
+  const user = await createAdmin({ ...data, role: 'dueno' });
   return { token: generateToken(user), user: toPublicUser(user) };
 };
 
@@ -109,7 +118,33 @@ const deleteAdmin = async (id, requesterId) => {
   if (!user) {
     throw httpError(404, 'Usuario no encontrado');
   }
+  if (user.role === 'dueno' && (await countOwners()) <= 1) {
+    throw httpError(400, 'No se puede eliminar al único Dueño del panel');
+  }
   await user.destroy();
+};
+
+// Edición desde Equipo: además de los datos personales permite cambiar el rol
+const updateStaffMember = async (id, data, requesterId) => {
+  const { role, ...profile } = data;
+  if (role !== undefined) {
+    validateRole(role);
+    const user = await AdminUser.findByPk(id);
+    if (!user) {
+      throw httpError(404, 'Usuario no encontrado');
+    }
+    if (role !== user.role) {
+      if (Number(id) === Number(requesterId)) {
+        throw httpError(400, 'No podés cambiar tu propio rol');
+      }
+      if (user.role === 'dueno' && (await countOwners()) <= 1) {
+        throw httpError(400, 'Tiene que quedar al menos un Dueño en el panel');
+      }
+      user.role = role;
+      await user.save();
+    }
+  }
+  return updateProfile(id, profile);
 };
 
 const login = async ({ identifier, email, password }) => {
@@ -148,13 +183,15 @@ const resetPassword = async ({ token, password }) => {
   if (!token || !password) {
     throw httpError(400, 'Token y password son obligatorios');
   }
+  validatePassword(password);
+  validatePassword(password);
 
   const user = await AdminUser.findOne({ where: { resetPasswordToken: token } });
   if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
     throw httpError(400, 'Token de recuperación inválido o expirado');
   }
 
-  user.password = bcrypt.hashSync(password, 8);
+  user.password = bcrypt.hashSync(password, BCRYPT_ROUNDS);
   user.resetPasswordToken = null;
   user.resetPasswordExpires = null;
   await user.save();
@@ -193,14 +230,12 @@ const updateProfile = async (id, { firstName, lastName, email, username, phone, 
   if (lastName !== undefined) user.lastName = lastName;
   if (phone !== undefined) user.phone = phone;
   if (password) {
-    if (String(password).length < 6) {
-      throw httpError(400, 'La contraseña debe tener al menos 6 caracteres');
-    }
-    user.password = bcrypt.hashSync(password, 8);
+    validatePassword(password);
+    user.password = bcrypt.hashSync(password, BCRYPT_ROUNDS);
   }
 
   await saveUnique(() => user.save());
   return toPublicUser(user);
 };
 
-module.exports = { isRegistrationOpen, register, listAdmins, addAdmin, deleteAdmin, login, recoverPassword, resetPassword, getProfile, updateProfile };
+module.exports = { isRegistrationOpen, register, listAdmins, addAdmin, deleteAdmin, updateStaffMember, login, recoverPassword, resetPassword, getProfile, updateProfile };

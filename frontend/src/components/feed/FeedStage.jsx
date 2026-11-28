@@ -5,6 +5,10 @@ import useElementSize from '../../hooks/useElementSize';
 import { gesture, recentlyPanned } from './gesture';
 
 const SPRING = { type: 'spring', stiffness: 320, damping: 36, mass: 0.8, restDelta: 0.5, restSpeed: 10 };
+const INSTANT = { duration: 0 };
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+const slideTransition = () => (prefersReducedMotion() ? INSTANT : SPRING);
 const LOCK_DISTANCE = 10;
 const AXIS_RATIO = 1.2;
 const SWIPE_RATIO = 0.18;
@@ -47,7 +51,7 @@ const Column = memo(function Column({
       return undefined;
     }
     if (y.get() === target) return undefined;
-    const controls = animate(y, target, SPRING);
+    const controls = animate(y, target, slideTransition());
     return () => controls.stop();
   }, [ghost, position, height, y]);
 
@@ -121,7 +125,7 @@ export default function FeedStage({
       return undefined;
     }
     if (trackX.get() === target) return undefined;
-    const controls = animate(trackX, target, SPRING);
+    const controls = animate(trackX, target, slideTransition());
     return () => controls.stop();
   }, [catIndex, width, trackX]);
 
@@ -154,7 +158,7 @@ export default function FeedStage({
     const destPosition = direction > 0 ? 0 : columns[destIndex].items.length - 1;
     const slot = direction > 0 ? column.items.length : -1;
     crossing.current = true;
-    animate(getY(column.id), -slot * height, SPRING).then(() => finishCross(column, current, destIndex, destPosition));
+    animate(getY(column.id), -slot * height, slideTransition()).then(() => finishCross(column, current, destIndex, destPosition));
     return true;
   };
 
@@ -162,7 +166,7 @@ export default function FeedStage({
     const slot = direction > 0 ? count : -1;
     const destIndex = wrap(slot, count);
     crossing.current = true;
-    animate(trackX, -slot * width, SPRING).then(() => {
+    animate(trackX, -slot * width, slideTransition()).then(() => {
       trackX.set(-destIndex * width);
       flushSync(() => onCategoryChange(destIndex));
       crossing.current = false;
@@ -259,10 +263,10 @@ export default function FeedStage({
     if (direction !== 0 && go(axis, direction)) return;
 
     if (axis === 'x') {
-      animate(trackX, -catIndex * width, SPRING);
+      animate(trackX, -catIndex * width, slideTransition());
     } else {
       const column = columns[catIndex];
-      if (column) animate(getY(column.id), -positionOf(column) * height, SPRING);
+      if (column) animate(getY(column.id), -positionOf(column) * height, slideTransition());
     }
   };
 

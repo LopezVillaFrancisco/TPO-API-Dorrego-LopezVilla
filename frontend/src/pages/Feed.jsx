@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronsLeftRight, ChevronUp, Keyboard, MessageCircle, MousePointer2, Plus, RotateCw } from 'lucide-react';
 import { businessApi, categoriesApi, productsApi } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { can } from '../utils/permissions';
 import FeedStage from '../components/feed/FeedStage';
 import ProductSlide from '../components/feed/ProductSlide';
 import FeedHeader from '../components/feed/FeedHeader';
@@ -24,7 +25,8 @@ const readSavedState = () => {
 };
 
 export default function Feed() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const canEdit = can(user, 'menu.edit');
   const [saved] = useState(readSavedState);
   const [data, setData] = useState({ categories: [], products: [], business: null });
   const [status, setStatus] = useState('loading');
@@ -160,25 +162,27 @@ export default function Feed() {
         total={meta.total}
         categoryName={meta.column.name}
         adminView={adminView}
-        onEdit={openEditor}
+        onEdit={canEdit ? openEditor : null}
         onToggleAvailable={toggleAvailable}
         onContact={openContact}
         onPrev={goPrev}
         onNext={goNext}
       />
     ),
-    [adminView, openEditor, toggleAvailable, openContact, goPrev, goNext]
+    [adminView, canEdit, openEditor, toggleAvailable, openContact, goPrev, goNext]
   );
 
   const renderEmpty = useCallback((column) => (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
       <p className="text-sm font-medium text-accent">{column.name}</p>
       <p className="font-serif text-2xl text-stone-300">Esta categoría todavía no tiene productos</p>
-      <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, product: null, categoryId: column.id })}>
-        <Plus size={16} /> Agregar producto
-      </button>
+      {canEdit && (
+        <button type="button" className="btn-primary" onClick={() => setEditor({ open: true, product: null, categoryId: column.id })}>
+          <Plus size={16} /> Agregar producto
+        </button>
+      )}
     </div>
-  ), []);
+  ), [canEdit]);
 
   return (
     <div className="fixed inset-0 flex justify-center bg-black">
@@ -228,7 +232,7 @@ export default function Feed() {
           onOpenInfo={() => setSheet('info')}
           onOpenMenu={() => setSheet('menu')}
           onOpenSearch={() => setSheet('search')}
-          onNewProduct={openNewProduct}
+          onNewProduct={canEdit ? openNewProduct : null}
           isAuthenticated={isAuthenticated}
           adminView={adminView}
           onToggleAdmin={() => setAdminView(!adminView)}
@@ -237,18 +241,20 @@ export default function Feed() {
         <AnimatePresence>
           {status === 'ready' && columns.length > 0 && !touched && (
             <motion.div
-              className="pointer-events-none absolute inset-x-0 top-[44%] z-10 flex flex-col items-center gap-2 text-white [text-shadow:0_1px_12px_rgb(0_0_0/0.95),0_0_2px_rgb(0_0_0/0.8)] lg:top-24 lg:right-auto lg:w-[57.4%]"
+              className="pointer-events-none absolute inset-x-0 top-[30%] z-10 flex flex-col items-center text-white lg:top-24 lg:right-auto lg:w-[57.4%]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 1.8 }} className="flex flex-col items-center lg:hidden">
-                <ChevronUp size={22} />
+              <div className="flex flex-col items-center gap-1 rounded-lg bg-ink/85 px-5 py-3 shadow-lg shadow-black/40 lg:hidden">
+                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}>
+                  <ChevronUp size={20} className="text-accent" />
+                </motion.span>
                 <span className="text-sm font-medium">Deslizá para ver más platos</span>
-              </motion.div>
-              <span className="flex items-center gap-1.5 text-xs text-white/70 lg:hidden">
-                <ChevronsLeftRight size={14} /> A los costados cambiás de categoría
-              </span>
+                <span className="mt-0.5 flex items-center gap-1.5 text-xs text-stone-300">
+                  <ChevronsLeftRight size={14} /> A los costados cambiás de categoría
+                </span>
+              </div>
               <div className="hidden items-center gap-5 rounded-md bg-ink/85 px-4 py-2.5 text-sm text-white/85 lg:flex">
                 <span className="flex items-center gap-2"><MousePointer2 size={14} /> Ruedita o ↑ ↓ para cambiar de plato</span>
                 <span className="h-4 w-px bg-white/20" />
@@ -262,10 +268,11 @@ export default function Feed() {
           <button
             type="button"
             onClick={() => setSheet('contact')}
-            className="absolute top-1/2 right-4 z-10 flex size-13 -translate-y-1/2 cursor-pointer lg:hidden items-center justify-center rounded-full bg-accent text-stone-900 shadow-xl shadow-black/40 transition hover:scale-105"
+            className={`absolute top-1/2 right-4 z-10 flex h-13 -translate-y-1/2 cursor-pointer items-center justify-center gap-2 rounded-full bg-accent text-stone-900 shadow-xl shadow-black/40 transition-colors hover:bg-accent-strong lg:hidden ${touched ? 'w-13' : 'px-5'}`}
             aria-label="Enviar una consulta"
           >
             <MessageCircle size={22} />
+            {!touched && <span className="text-sm font-semibold">Consultar</span>}
           </button>
         )}
 
@@ -284,7 +291,7 @@ export default function Feed() {
       </div>
 
       <InfoSheet open={sheet === 'info'} onClose={() => setSheet(null)} business={data.business} onContact={() => setSheet('contact')} />
-      <ContactSheet open={sheet === 'contact'} onClose={() => setSheet(null)} product={activeProduct} />
+      <ContactSheet open={sheet === 'contact'} onClose={() => setSheet(null)} product={activeProduct} business={data.business} />
       <SearchSheet open={sheet === 'search'} onClose={() => setSheet(null)} categories={data.categories} onSelect={jumpTo} />
       <MenuSheet
         open={sheet === 'menu'}
@@ -296,7 +303,7 @@ export default function Feed() {
           setSheet(null);
         }}
         adminView={adminView}
-        onNewProduct={openNewProduct}
+        onNewProduct={canEdit ? openNewProduct : null}
       />
       <ProductEditor
         open={editor.open}

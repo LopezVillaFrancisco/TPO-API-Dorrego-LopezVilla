@@ -1,39 +1,22 @@
 const CategoryService = require('../services/category.service');
+const { asyncHandler } = require('../utils/http');
 
-const getCategories = async (req, res) => {
-  try {
-    const categories = await CategoryService.getCategories();
-    return res.status(200).json({ status: 200, data: categories });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const getCategories = asyncHandler(async () => ({ data: await CategoryService.getCategories() }));
 
-const createCategory = async (req, res) => {
-  try {
-    const category = await CategoryService.createCategory(req.body);
-    return res.status(201).json({ status: 201, data: category, message: 'Categoría creada correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const createCategory = asyncHandler(async (req) => ({
+  status: 201,
+  data: await CategoryService.createCategory(req.body),
+  message: 'Categoría creada correctamente',
+}));
 
-const updateCategory = async (req, res) => {
-  try {
-    const category = await CategoryService.updateCategory(req.params.id, req.body);
-    return res.status(200).json({ status: 200, data: category, message: 'Categoría actualizada correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const updateCategory = asyncHandler(async (req) => ({
+  data: await CategoryService.updateCategory(req.params.id, req.body),
+  message: 'Categoría actualizada correctamente',
+}));
 
-const deleteCategory = async (req, res) => {
-  try {
-    await CategoryService.deleteCategory(req.params.id);
-    return res.status(200).json({ status: 200, message: 'Categoría eliminada correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const deleteCategory = asyncHandler(async (req) => {
+  await CategoryService.deleteCategory(req.params.id);
+  return { message: 'Categoría eliminada correctamente' };
+});
 
 module.exports = { getCategories, createCategory, updateCategory, deleteCategory };

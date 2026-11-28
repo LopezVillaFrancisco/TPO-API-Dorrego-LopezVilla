@@ -108,3 +108,11 @@ SELECT * FROM (VALUES
   ('Martín Gómez', 'martin@example.com', NULL, 'Consulta sobre: Margherita', '¿Tienen opción de masa sin TACC?', 'leido'::enum_contact_messages_status, NOW() - INTERVAL '1 day')
 ) AS v(name, email, phone, subject, message, status, created_at)
 WHERE NOT EXISTS (SELECT 1 FROM contact_messages);
+
+INSERT INTO quick_replies (title, text, "order")
+SELECT * FROM (VALUES
+  ('Sin TACC', 'Sí, tenemos opciones sin TACC: las pizzas se pueden pedir con masa sin gluten y las carnes salen con guarnición apta. Avisanos al pedir así las preparamos por separado.', 0),
+  ('Reservas', 'Las reservas las tomamos por teléfono o por WhatsApp. Pasanos día, horario y cantidad de personas y te confirmamos.', 1),
+  ('Porciones', 'La parrillada está pensada para 2 personas; para 3 te recomendamos sumar una guarnición.', 2)
+) AS v(title, text, ord)
+WHERE NOT EXISTS (SELECT 1 FROM quick_replies);
