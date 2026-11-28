@@ -60,7 +60,7 @@ Los mensajes de cada uno aparecen en la misma terminal con las etiquetas `back` 
 
 ## Datos de ejemplo
 
-`backend/datos-ejemplo.sql` carga los datos del comercio, 6 categorías, 19 productos con fotos y 2 mensajes. Incluye un descuento vigente, uno vencido y un producto agotado. Cada producto tiene una descripción completa (ingredientes, preparación y porción) y sus etiquetas para el cliente, como Sin TACC, Vegetariano o Picante.
+`backend/datos-ejemplo.sql` carga los datos del comercio, 6 categorías, 19 productos con fotos, 2 mensajes y 3 respuestas rápidas. Incluye un descuento vigente, uno vencido y un producto agotado. Cada producto tiene una descripción completa (ingredientes, preparación y porción) y sus etiquetas para el cliente, como Sin TACC, Vegetariano o Picante.
 
 Se corre en el editor SQL de la base (en Supabase, SQL Editor), después de haber levantado el backend una vez para que existan las tablas y la columna `tags`. Se puede correr más de una vez sin duplicar datos; cada vez vuelve a poner las descripciones y etiquetas de ejemplo en esos 19 productos.
 
@@ -72,8 +72,9 @@ Los valores de ejemplo están en el `.env.example` de cada carpeta.
 | --- | --- | --- |
 | `PORT` | backend | Puerto de la API. |
 | `NODE_ENV` | backend | `development` o `production`. En desarrollo, la recuperación de contraseña devuelve el token en la respuesta porque no se envían mails. |
-| `CORS_ORIGIN` | backend | URL del frontend que puede llamar a la API. |
-| `JWT_SECRET` | backend | Clave para firmar los tokens de sesión. |
+| `CORS_ORIGIN` | backend | URL del frontend que puede llamar a la API. Por defecto `http://localhost:5173`; obligatoria en producción. |
+| `JWT_SECRET` | backend | Clave para firmar los tokens de sesión. Obligatoria en producción: sin ella el servidor no arranca. |
+| `TRUST_PROXY` | backend | `true` si la API corre detrás de un proxy, para que el límite de pedidos use la IP real del cliente. |
 | `JWT_EXPIRES_IN` | backend | Duración de la sesión, por ejemplo `24h`. |
 | `RESET_TOKEN_EXPIRES_MINUTES` | backend | Minutos de validez del link para recuperar la contraseña. |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | backend | Conexión a PostgreSQL. En Supabase usar los datos del *Session pooler* (Connect → Session pooler), porque la conexión directa solo funciona con IPv6. |
@@ -93,6 +94,8 @@ backend/
   services/       reglas de negocio y validaciones
   models/         tablas y relaciones (Sequelize)
   auth/           middleware que valida el token
+  middlewares/    límite de pedidos por IP
+  utils/          errores HTTP y wrapper de los controllers
   databases/      conexión a PostgreSQL
 
 frontend/src/
@@ -131,9 +134,17 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 | PATCH | `/api/business-info` | Sí |
 | POST | `/api/contact-messages` | No |
 | GET | `/api/contact-messages` | Sí |
-| PATCH, DELETE | `/api/contact-messages/:id` | Sí |
+| GET | `/api/contact-messages/summary` (pendientes y sin responder) | Sí |
+| PATCH, DELETE | `/api/contact-messages/:id` (PATCH acepta `status`, `internalNote` y `archived`) | Sí |
+| GET, POST | `/api/quick-replies` (respuestas rápidas) | Sí |
+| PATCH, DELETE | `/api/quick-replies/:id` | Sí |
 | GET, POST | `/api/admin-users` (usuarios del panel) | Sí |
 | PATCH, DELETE | `/api/admin-users/:id` (no permite eliminarse a uno mismo) | Sí |
+
+## Documentación
+
+- [docs/consultas.md](docs/consultas.md): recorrido de una consulta, estados y respuesta.
+- [docs/validaciones.md](docs/validaciones.md): reglas de cada campo y límites de pedidos.
 
 ## Pantallas
 
@@ -142,6 +153,7 @@ Todas las respuestas de la API tienen la forma `{ status, data, message }`. Las 
 | `/` | Menú para clientes |
 | `/login`, `/registro` | Ingreso y registro del administrador |
 | `/recuperar`, `/reset` | Recuperación de contraseña |
+| `/admin/hoy` | Lo que requiere acción: consultas sin responder, agotados, destacados por vencer y productos incompletos |
 | `/admin/productos` | Productos |
 | `/admin/categorias` | Categorías |
 | `/admin/mensajes` | Consultas recibidas |

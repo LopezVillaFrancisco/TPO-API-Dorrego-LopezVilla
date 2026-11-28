@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Eye, FolderTree, Inbox, LogOut, Store, UserRound, Users, UtensilsCrossed } from 'lucide-react';
+import { Eye, FolderTree, Inbox, ListChecks, LogOut, Store, UserRound, Users, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { businessApi, messagesApi } from '../../api';
 import BusinessLogo from '../../components/BusinessLogo';
 
 const LINKS = [
+  { to: 'hoy', label: 'Hoy', icon: ListChecks },
   { to: 'productos', label: 'Productos', icon: UtensilsCrossed },
   { to: 'categorias', label: 'Categorías', icon: FolderTree },
   { to: 'mensajes', label: 'Mensajes', icon: Inbox },
@@ -13,6 +14,8 @@ const LINKS = [
   { to: 'equipo', label: 'Equipo', icon: Users },
   { to: 'perfil', label: 'Perfil', icon: UserRound },
 ];
+
+const POLL_MS = 60 * 1000;
 
 function PendingCount({ value }) {
   if (value <= 0) return null;
@@ -23,18 +26,42 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
-  const [pending, setPending] = useState(0);
+  const [summary, setSummary] = useState({ pending: 0, unanswered: 0 });
+  const pending = summary.pending;
 
-  const refreshPending = () =>
-    messagesApi
-      .list('pendiente')
-      .then((messages) => setPending(messages.length))
-      .catch(() => null);
+  const refreshPending = useCallback(
+    () =>
+      messagesApi
+        .summary()
+        .then(setSummary)
+        .catch(() => null),
+    []
+  );
 
   useEffect(() => {
     businessApi.get().then(setBusiness).catch(() => null);
-    refreshPending();
   }, []);
+
+  // Las consultas nuevas aparecen sin recargar: cada minuto con la pestaña visible y al volver a ella
+  useEffect(() => {
+    refreshPending();
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') refreshPending();
+    };
+    const timer = setInterval(refreshIfVisible, POLL_MS);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    window.addEventListener('focus', refreshIfVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+      window.removeEventListener('focus', refreshIfVisible);
+    };
+  }, [refreshPending]);
+
+  useEffect(() => {
+    const name = business?.name || 'Mi comercio';
+    document.title = pending > 0 ? `(${pending}) Panel · ${name}` : `Panel · ${name}`;
+  }, [pending, business]);
 
   const handleLogout = () => {
     logout();
@@ -119,7 +146,7 @@ export default function AdminLayout() {
           </nav>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-6 lg:px-10 lg:py-10">
-          <Outlet context={{ business, setBusiness, refreshPending }} />
+          <Outlet context={{ business, setBusiness, refreshPending, summary }} />
         </main>
       </div>
     </div>

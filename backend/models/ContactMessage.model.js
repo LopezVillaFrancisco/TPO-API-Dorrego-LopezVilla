@@ -13,6 +13,10 @@ const ContactMessage = sequelize.define(
     subject: { type: DataTypes.STRING(200), allowNull: false },
     message: { type: DataTypes.TEXT, allowNull: false },
     status: { type: DataTypes.ENUM(...STATUSES), allowNull: false, defaultValue: 'pendiente' },
+    repliedAt: { type: DataTypes.DATE, allowNull: true },
+    repliedBy: { type: DataTypes.STRING(150), allowNull: true },
+    internalNote: { type: DataTypes.TEXT, allowNull: true },
+    archivedAt: { type: DataTypes.DATE, allowNull: true },
   },
   {
     tableName: 'contact_messages',

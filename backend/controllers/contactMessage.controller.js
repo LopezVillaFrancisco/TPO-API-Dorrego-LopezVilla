@@ -1,39 +1,30 @@
 const ContactMessageService = require('../services/contactMessage.service');
+const { asyncHandler } = require('../utils/http');
 
-const createMessage = async (req, res) => {
-  try {
-    const contactMessage = await ContactMessageService.createMessage(req.body);
-    return res.status(201).json({ status: 201, data: contactMessage, message: 'Mensaje enviado correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const createMessage = asyncHandler(async (req) => ({
+  status: 201,
+  data: await ContactMessageService.createMessage(req.body),
+  message: 'Mensaje enviado correctamente',
+}));
 
-const getMessages = async (req, res) => {
-  try {
-    const messages = await ContactMessageService.getMessages({ status: req.query.status });
-    return res.status(200).json({ status: 200, data: messages });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const getMessages = asyncHandler(async (req) => ({
+  data: await ContactMessageService.getMessages({
+    status: req.query.status,
+    search: req.query.search,
+    archived: req.query.archived,
+  }),
+}));
 
-const updateMessageStatus = async (req, res) => {
-  try {
-    const contactMessage = await ContactMessageService.updateMessageStatus(req.params.id, req.body);
-    return res.status(200).json({ status: 200, data: contactMessage, message: 'Estado del mensaje actualizado' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const getSummary = asyncHandler(async () => ({ data: await ContactMessageService.getSummary() }));
 
-const deleteMessage = async (req, res) => {
-  try {
-    await ContactMessageService.deleteMessage(req.params.id);
-    return res.status(200).json({ status: 200, message: 'Mensaje eliminado correctamente' });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ status: error.statusCode || 500, message: error.message });
-  }
-};
+const updateMessage = asyncHandler(async (req) => ({
+  data: await ContactMessageService.updateMessage(req.params.id, req.body, req.decoded.id),
+  message: 'Mensaje actualizado',
+}));
 
-module.exports = { createMessage, getMessages, updateMessageStatus, deleteMessage };
+const deleteMessage = asyncHandler(async (req) => {
+  await ContactMessageService.deleteMessage(req.params.id);
+  return { message: 'Mensaje eliminado correctamente' };
+});
+
+module.exports = { createMessage, getMessages, getSummary, updateMessage, deleteMessage };

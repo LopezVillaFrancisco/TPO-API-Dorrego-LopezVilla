@@ -7,6 +7,7 @@ import RecoverPassword from './pages/auth/RecoverPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminProducts from './pages/admin/AdminProducts';
+import AdminToday from './pages/admin/AdminToday';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminMessages from './pages/admin/AdminMessages';
 import AdminBusiness from './pages/admin/AdminBusiness';
@@ -29,7 +30,8 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="productos" replace />} />
+        <Route index element={<Navigate to="hoy" replace />} />
+        <Route path="hoy" element={<AdminToday />} />
         <Route path="productos" element={<AdminProducts />} />
         <Route path="categorias" element={<AdminCategories />} />
         <Route path="mensajes" element={<AdminMessages />} />

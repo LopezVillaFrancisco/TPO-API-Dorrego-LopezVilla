@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch-path=app.js --watch-path=config.js --watch-path=auth --watch-path=controllers --watch-path=databases --watch-path=models --watch-path=routes --watch-path=services app.js"
+    "dev": "node --watch-path=app.js --watch-path=config.js --watch-path=auth --watch-path=controllers --watch-path=databases --watch-path=models --watch-path=routes --watch-path=services --watch-path=utils --watch-path=middlewares app.js"
   },
   "license": "ISC",
   "dependencies": {
@@ -13,6 +13,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
     "pg-hstore": "^2.3.4",

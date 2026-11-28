@@ -4,7 +4,7 @@ const Product = require('../models/Product.model');
 const ProductImage = require('../models/ProductImage.model');
 const Category = require('../models/Category.model');
 
-const httpError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
+const { httpError, escapeLike } = require('../utils/http');
 
 const UPDATABLE_FIELDS = [
   'categoryId',
@@ -84,10 +84,12 @@ const ensureCategoryExists = async (categoryId) => {
 const getProducts = async ({ search, categoryId }) => {
   const where = {};
 
-  if (search) {
+  const term = typeof search === 'string' ? search.trim() : '';
+  if (term) {
+    const pattern = `%${escapeLike(term)}%`;
     where[Op.or] = [
-      { name: { [Op.iLike]: `%${search}%` } },
-      { description: { [Op.iLike]: `%${search}%` } },
+      { name: { [Op.iLike]: pattern } },
+      { description: { [Op.iLike]: pattern } },
     ];
   }
 

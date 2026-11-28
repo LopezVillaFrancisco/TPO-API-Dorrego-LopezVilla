@@ -5,17 +5,17 @@ const crypto = require('crypto');
 const config = require('../config');
 const AdminUser = require('../models/AdminUser.model');
 
-const httpError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
+const { httpError, saveUnique: saveUniqueField } = require('../utils/http');
 
-const saveUnique = async (operation) => {
-  try {
-    return await operation();
-  } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      const field = Object.keys(error.fields || {})[0];
-      throw httpError(409, field === 'username' ? 'El usuario ya está en uso' : 'El email ya está registrado');
-    }
-    throw error;
+const saveUnique = (operation) =>
+  saveUniqueField(operation, (field) => (field === 'username' ? 'El usuario ya está en uso' : 'El email ya está registrado'));
+
+const MIN_PASSWORD = 6;
+const BCRYPT_ROUNDS = 10;
+
+const validatePassword = (password) => {
+  if (String(password).length < MIN_PASSWORD) {
+    throw httpError(400, `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres`);
   }
 };
 
@@ -60,9 +60,7 @@ const createAdmin = async ({ firstName, lastName, email, username, phone, passwo
   if (!firstName || !lastName || !email || !password) {
     throw httpError(400, 'firstName, lastName, email y password son obligatorios');
   }
-  if (String(password).length < 6) {
-    throw httpError(400, 'La contraseña debe tener al menos 6 caracteres');
-  }
+  validatePassword(password);
   validateEmail(email);
   const cleanUsername = normalizeUsername(username);
 
@@ -79,7 +77,7 @@ const createAdmin = async ({ firstName, lastName, email, username, phone, passwo
       email,
       username: cleanUsername,
       phone,
-      password: bcrypt.hashSync(password, 8),
+      password: bcrypt.hashSync(password, BCRYPT_ROUNDS),
     })
   );
 
@@ -148,13 +146,15 @@ const resetPassword = async ({ token, password }) => {
   if (!token || !password) {
     throw httpError(400, 'Token y password son obligatorios');
   }
+  validatePassword(password);
+  validatePassword(password);
 
   const user = await AdminUser.findOne({ where: { resetPasswordToken: token } });
   if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
     throw httpError(400, 'Token de recuperación inválido o expirado');
   }
 
-  user.password = bcrypt.hashSync(password, 8);
+  user.password = bcrypt.hashSync(password, BCRYPT_ROUNDS);
   user.resetPasswordToken = null;
   user.resetPasswordExpires = null;
   await user.save();
@@ -193,10 +193,8 @@ const updateProfile = async (id, { firstName, lastName, email, username, phone, 
   if (lastName !== undefined) user.lastName = lastName;
   if (phone !== undefined) user.phone = phone;
   if (password) {
-    if (String(password).length < 6) {
-      throw httpError(400, 'La contraseña debe tener al menos 6 caracteres');
-    }
-    user.password = bcrypt.hashSync(password, 8);
+    validatePassword(password);
+    user.password = bcrypt.hashSync(password, BCRYPT_ROUNDS);
   }
 
   await saveUnique(() => user.save());

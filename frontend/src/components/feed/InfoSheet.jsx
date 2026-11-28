@@ -1,6 +1,7 @@
 import { AtSign, Clock, Globe, MapPin, MessageCircle, Phone } from 'lucide-react';
 import BottomSheet from '../BottomSheet';
 import BusinessLogo from '../BusinessLogo';
+import { isValidUrl } from '../../utils/format';
 
 const SOCIALS = {
   instagram: { label: 'Instagram', icon: AtSign },
@@ -36,14 +37,14 @@ function InfoRow({ icon: Icon, label, value, href }) {
   );
 }
 
-export default function InfoSheet({ open, onClose, business, onContact }) {
-  const socials = Object.entries(business?.socialLinks || {}).filter(([, url]) => url);
+export function BusinessInfoContent({ business, onContact }) {
+  const socials = Object.entries(business?.socialLinks || {}).filter(([, url]) => url && isValidUrl(url));
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Información del comercio">
+    <>
       <div className="flex flex-col items-center pt-2 text-center">
         <BusinessLogo business={business} size="lg" />
-        <h2 className="mt-4 font-serif text-3xl">{business?.name}</h2>
+        <h2 className="mt-4 font-serif text-3xl break-words">{business?.name}</h2>
         {business?.description && <p className="mt-3 text-sm leading-relaxed text-stone-400">{business.description}</p>}
       </div>
 
@@ -76,6 +77,14 @@ export default function InfoSheet({ open, onClose, business, onContact }) {
       <button type="button" className="btn-primary mt-6 w-full" onClick={onContact}>
         <MessageCircle size={16} /> Hacer una consulta
       </button>
+    </>
+  );
+}
+
+export default function InfoSheet({ open, onClose, business, onContact }) {
+  return (
+    <BottomSheet open={open} onClose={onClose} title="Información del comercio">
+      <BusinessInfoContent business={business} onContact={onContact} />
     </BottomSheet>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChefHat, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { categoriesApi, productsApi } from '../../api';
 import PageHeader from '../../components/PageHeader';
@@ -18,7 +19,8 @@ export default function AdminProducts() {
   const [status, setStatus] = useState('loading');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [availability, setAvailability] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [availability, setAvailability] = useState(searchParams.get('estado') === 'agotados' ? 'unavailable' : 'all');
   const [editor, setEditor] = useState({ open: false, product: null });
   const [toDelete, setToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -39,6 +41,17 @@ export default function AdminProducts() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const editId = searchParams.get('edit');
+  useEffect(() => {
+    if (status !== 'ready' || !editId) return;
+    const product = products.find((item) => item.id === Number(editId));
+    if (product) setEditor({ open: true, product });
+    setSearchParams((params) => {
+      params.delete('edit');
+      return params;
+    }, { replace: true });
+  }, [status, editId, products, setSearchParams]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
